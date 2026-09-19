@@ -1,0 +1,177 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  RootCause: Explainable Real-Time Resource Allocation Engine
+  AWS First Commit 2026 Hackathon Architecture
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        USE_BEDROCK: "true"
+        BEDROCK_MODEL_ID: "amazon.titan-text-express-v1"
+        SUPPLIES_TABLE: !Ref SuppliesTable
+        DEMANDS_TABLE: !Ref DemandsTable
+        ALLOCATIONS_TABLE: !Ref AllocationsTable
+
+Resources:
+  # ==========================================
+  # HTTP API Gateway
+  # ==========================================
+  RootCauseHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+        AllowHeaders:
+          - "*"
+        AllowOrigins:
+          - "*"
+
+  # ==========================================
+  # FastAPI Lambda Function
+  # ==========================================
+  RootCauseBackendFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend
+      Handler: lambda_handler.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SuppliesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DemandsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AllocationsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        ApiProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RootCauseHttpApi
+            Path: /{proxy+}
+            Method: ANY
+        RootProxy:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RootCauseHttpApi
+            Path: /
+            Method: ANY
+
+  # ==========================================
+  # DynamoDB Storage Tables
+  # ==========================================
+  SuppliesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: rootcause-supplies
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: resource_type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: ResourceTypeIndex
+          KeySchema:
+            - AttributeName: resource_type
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  DemandsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: rootcause-demands
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: StatusIndex
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  AllocationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: rootcause-allocations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: N
+        - AttributeName: demand_id
+          AttributeType: N
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: DemandIndex
+          KeySchema:
+            - AttributeName: demand_id
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  # ==========================================
+  # Static Frontend Hosting (S3)
+  # ==========================================
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "rootcause-operations-ui-${AWS::AccountId}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+Outputs:
+  ApiUrl:
+    Description: "RootCause HTTP API endpoint URL"
+    Value: !Sub "https://${RootCauseHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  FrontendUrl:
+    Description: "Frontend S3 Static Website URL"
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  BackendFunctionArn:
+    Description: "RootCause Backend Lambda Function ARN"
+    Value: !GetAtt RootCauseBackendFunction.Arn

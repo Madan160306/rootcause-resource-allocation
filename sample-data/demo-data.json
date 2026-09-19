@@ -1,0 +1,129 @@
+{
+  "supplies": [
+    {
+      "id": 1,
+      "resource_type": "Oxygen Cylinder",
+      "quantity": 50,
+      "reserve_quantity": 10,
+      "provider": "Metro General Hospital",
+      "location": "Downtown Center",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-22T23:59:59Z",
+      "status": "available",
+      "provider_reliability": 0.98
+    },
+    {
+      "id": 2,
+      "resource_type": "Oxygen Cylinder",
+      "quantity": 30,
+      "reserve_quantity": 5,
+      "provider": "St. Jude Emergency Logistics",
+      "location": "Eastside Medical Hub",
+      "latitude": 40.7306,
+      "longitude": -73.9352,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-25T23:59:59Z",
+      "status": "available",
+      "provider_reliability": 0.94
+    },
+    {
+      "id": 3,
+      "resource_type": "Generator",
+      "quantity": 8,
+      "reserve_quantity": 2,
+      "provider": "Red Cross Emergency Depot",
+      "location": "Queens Logistics Park",
+      "latitude": 40.7282,
+      "longitude": -73.7949,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-30T23:59:59Z",
+      "status": "available",
+      "provider_reliability": 0.99
+    },
+    {
+      "id": 4,
+      "resource_type": "Ambulance",
+      "quantity": 12,
+      "reserve_quantity": 2,
+      "provider": "City EMS Fleet Operations",
+      "location": "Midtown Dispatch Center",
+      "latitude": 40.7589,
+      "longitude": -73.9851,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-21T18:00:00Z",
+      "status": "available",
+      "provider_reliability": 0.97
+    },
+    {
+      "id": 5,
+      "resource_type": "Blood Unit",
+      "quantity": 120,
+      "reserve_quantity": 30,
+      "provider": "Regional Blood Bank",
+      "location": "Brooklyn Medical Complex",
+      "latitude": 40.6782,
+      "longitude": -73.9442,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-24T12:00:00Z",
+      "status": "available",
+      "provider_reliability": 0.96
+    },
+    {
+      "id": 6,
+      "resource_type": "Medical Kit",
+      "quantity": 200,
+      "reserve_quantity": 40,
+      "provider": "Apex Disaster Relief",
+      "location": "North Bronx Depot",
+      "latitude": 40.8448,
+      "longitude": -73.8648,
+      "available_from": "2026-09-19T00:00:00Z",
+      "available_until": "2026-09-26T23:59:59Z",
+      "status": "available",
+      "provider_reliability": 0.92
+    }
+  ],
+  "demands": [
+    {
+      "id": 1,
+      "resource_type": "Oxygen Cylinder",
+      "quantity": 20,
+      "requester": "Riverside Community Clinic",
+      "location": "Manhattan West",
+      "latitude": 40.7200,
+      "longitude": -74.0100,
+      "urgency": "CRITICAL",
+      "needed_by": "2026-09-20T12:00:00Z",
+      "status": "pending",
+      "created_at": "2026-09-19T08:30:00Z"
+    },
+    {
+      "id": 2,
+      "resource_type": "Generator",
+      "quantity": 4,
+      "requester": "Field Triage Station Bravo",
+      "location": "Flushing Outpost",
+      "latitude": 40.7675,
+      "longitude": -73.8331,
+      "urgency": "HIGH",
+      "needed_by": "2026-09-21T06:00:00Z",
+      "status": "pending",
+      "created_at": "2026-09-19T09:15:00Z"
+    },
+    {
+      "id": 3,
+      "resource_type": "Ambulance",
+      "quantity": 3,
+      "requester": "Highway Trauma Team",
+      "location": "Times Square Corridor",
+      "latitude": 40.7580,
+      "longitude": -73.9855,
+      "urgency": "CRITICAL",
+      "needed_by": "2026-09-19T14:00:00Z",
+      "status": "pending",
+      "created_at": "2026-09-19T10:00:00Z"
+    }
+  ]
+}

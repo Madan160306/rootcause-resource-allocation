@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+frontend/node_modules/
+.npm
+*.log
+
+# Environment & Secrets
+.env
+.env.local
+
+# AWS SAM
+.aws-sam/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
