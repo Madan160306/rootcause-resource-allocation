@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
+
+:root {
+  /* Colors */
+  --bg: #0A0A0C;
+  --surface: #131316;
+  --raised: #1A1A1F;
+  --border: rgba(255, 255, 255, 0.06);
+
+  /* ONE Accent: Gold (primary buttons, active tab only) */
+  --accent-gold: #C9A961;
+  --accent-gold-hover: #b8974f;
+
+  /* Typography */
+  --text: #EDEAE3;
+  --muted: #8A8780;
+
+  /* Status Colors ONLY on badges: 12% tint bg + matching text */
+  --status-critical: #E5484D;
+  --status-critical-bg: rgba(229, 72, 77, 0.12);
+
+  --status-high: #F5A524;
+  --status-high-bg: rgba(245, 165, 36, 0.12);
+
+  --status-ok: #3DD68C;
+  --status-ok-bg: rgba(61, 214, 140, 0.12);
+
+  /* Fonts */
+  --font-heading: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Radius (cards 10px, buttons 6px, NO gradients) */
+  --radius-card: 10px;
+  --radius-btn: 6px;
+  --radius-badge: 4px;
+}

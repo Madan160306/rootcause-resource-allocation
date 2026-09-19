@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import Header from "./components/Header";
 import DashboardTab from "./components/DashboardTab";
 import AllocateTab from "./components/AllocateTab";
@@ -182,11 +183,10 @@ export default function App() {
             bottom: "1.5rem",
             right: "1.5rem",
             zIndex: 1000,
-            background: notification.type === "error" ? "#f43f5e" : "#10b981",
-            color: "white",
+            background: notification.type === "error" ? "var(--status-critical)" : "var(--status-ok)",
+            color: "var(--bg)",
             padding: "0.75rem 1.25rem",
-            borderRadius: "8px",
-            boxShadow: "0 4px 15px rgba(0,0,0,0.3)",
+            borderRadius: "var(--radius-btn)",
             fontWeight: 600,
             fontSize: "0.9rem",
             display: "flex",
@@ -194,7 +194,11 @@ export default function App() {
             gap: "0.5rem",
           }}
         >
-          <span>{notification.type === "error" ? "⚠️" : "✅"}</span>
+          {notification.type === "error" ? (
+            <AlertCircle size={16} strokeWidth={1.5} />
+          ) : (
+            <CheckCircle2 size={16} strokeWidth={1.5} />
+          )}
           <span>{notification.msg}</span>
         </div>
       )}

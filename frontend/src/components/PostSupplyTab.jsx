@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Package, AlertTriangle, CheckCircle2, Building2 } from "lucide-react";
 
 const PRESET_SUPPLY_LOCATIONS = [
   { name: "Downtown Center", lat: 40.7128, lon: -74.0060 },
@@ -74,20 +75,25 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
   return (
     <div className="form-card">
-      <h2 className="form-title">📦 Register Supply Inventory &amp; Reserve</h2>
+      <h2 className="form-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <Package size={16} strokeWidth={1.5} />
+        <span>Register Supply Inventory &amp; Reserve</span>
+      </h2>
       <p className="form-desc">
         Publish available emergency assets. Safety reserves are strictly guarded by RootCause to prevent facility exhaustion.
       </p>
 
       {errorMsg && (
-        <div style={{ color: "#fb7185", background: "rgba(244,63,94,0.1)", padding: "0.75rem", borderRadius: "6px", marginBottom: "1rem" }}>
-          ⚠️ {errorMsg}
+        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <AlertTriangle size={16} strokeWidth={1.5} />
+          <span>{errorMsg}</span>
         </div>
       )}
 
       {successMsg && (
-        <div style={{ color: "#4ade80", background: "rgba(16,185,129,0.1)", padding: "0.75rem", borderRadius: "6px", marginBottom: "1rem" }}>
-          ✅ {successMsg}
+        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <CheckCircle2 size={16} strokeWidth={1.5} />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -129,7 +135,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             <label>Total Inventory Units</label>
             <input
               type="number"
-              className="form-control"
+              className="form-control font-mono"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
@@ -141,7 +147,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             <label>Mandatory Safety Reserve (Protected)</label>
             <input
               type="number"
-              className="form-control"
+              className="form-control font-mono"
               min="0"
               value={reserveQuantity}
               onChange={(e) => setReserveQuantity(e.target.value)}
@@ -153,9 +159,9 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
         {/* Dynamic Capacity Callout */}
         <div
           style={{
-            background: "#0f172a",
-            border: "1px solid var(--border-color)",
-            borderRadius: "6px",
+            background: "var(--raised)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--radius-btn)",
             padding: "0.75rem",
             marginBottom: "1.25rem",
             display: "flex",
@@ -164,14 +170,14 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           }}
         >
           <span>
-            Total: <strong>{quantity}</strong>
+            Total: <strong className="font-mono">{quantity}</strong>
           </span>
           <span>
-            Safety Reserve: <strong style={{ color: "#f59e0b" }}>{reserveQuantity}</strong>
+            Safety Reserve: <strong className="font-mono">{reserveQuantity}</strong>
           </span>
           <span>
             Net Usable for Allocation:{" "}
-            <strong style={{ color: usable > 0 ? "#38bdf8" : "#fb7185" }}>{usable} units</strong>
+            <strong className="font-mono">{usable} units</strong>
           </span>
         </div>
 
@@ -192,7 +198,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             <input
               type="number"
               step="any"
-              className="form-control"
+              className="form-control font-mono"
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               required
@@ -204,7 +210,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             <input
               type="number"
               step="any"
-              className="form-control"
+              className="form-control font-mono"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               required
@@ -226,7 +232,8 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
                   setLongitude(preset.lon);
                 }}
               >
-                🏥 {preset.name}
+                <Building2 size={16} strokeWidth={1.5} style={{ verticalAlign: "middle", marginRight: "3px" }} />
+                <span>{preset.name}</span>
               </button>
             ))}
           </div>
@@ -237,7 +244,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             <label>Available Until</label>
             <input
               type="text"
-              className="form-control"
+              className="form-control font-mono"
               value={availableUntil}
               onChange={(e) => setAvailableUntil(e.target.value)}
             />
@@ -250,7 +257,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
               step="0.01"
               min="0.5"
               max="1.0"
-              className="form-control"
+              className="form-control font-mono"
               value={reliability}
               onChange={(e) => setReliability(e.target.value)}
             />
@@ -259,7 +266,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-secondary"
           style={{ width: "100%", padding: "0.75rem", marginTop: "1rem" }}
           disabled={loading}
         >

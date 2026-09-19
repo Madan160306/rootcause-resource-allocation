@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { AlertCircle, AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
 
 const PRESET_LOCATIONS = [
   { name: "Manhattan West", lat: 40.7200, lon: -74.0100 },
@@ -57,20 +58,25 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
 
   return (
     <div className="form-card">
-      <h2 className="form-title">🚨 Post Emergency Resource Demand</h2>
+      <h2 className="form-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <AlertCircle size={16} strokeWidth={1.5} />
+        <span>Post Emergency Resource Demand</span>
+      </h2>
       <p className="form-desc">
         Submit emergency supply requests for rapid, explainable matching by the RootCause Engine.
       </p>
 
       {errorMsg && (
-        <div style={{ color: "#fb7185", background: "rgba(244,63,94,0.1)", padding: "0.75rem", borderRadius: "6px", marginBottom: "1rem" }}>
-          ⚠️ {errorMsg}
+        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <AlertTriangle size={16} strokeWidth={1.5} />
+          <span>{errorMsg}</span>
         </div>
       )}
 
       {successMsg && (
-        <div style={{ color: "#4ade80", background: "rgba(16,185,129,0.1)", padding: "0.75rem", borderRadius: "6px", marginBottom: "1rem" }}>
-          ✅ {successMsg}
+        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <CheckCircle2 size={16} strokeWidth={1.5} />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -98,7 +104,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
             <label>Units Needed</label>
             <input
               type="number"
-              className="form-control"
+              className="form-control font-mono"
               min="1"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
@@ -127,10 +133,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
               value={urgency}
               onChange={(e) => setUrgency(e.target.value)}
             >
-              <option value="CRITICAL">🔴 CRITICAL (Immediate Life Threat)</option>
-              <option value="HIGH">🟠 HIGH (Urgent &lt; 12 Hours)</option>
-              <option value="MEDIUM">🔵 MEDIUM (Operational Need &lt; 48 Hours)</option>
-              <option value="LOW">⚪ LOW (Replenishment)</option>
+              <option value="CRITICAL">CRITICAL (Immediate Life Threat)</option>
+              <option value="HIGH">HIGH (Urgent &lt; 12 Hours)</option>
+              <option value="MEDIUM">MEDIUM (Operational Need &lt; 48 Hours)</option>
+              <option value="LOW">LOW (Replenishment)</option>
             </select>
           </div>
         </div>
@@ -152,7 +158,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
             <input
               type="number"
               step="any"
-              className="form-control"
+              className="form-control font-mono"
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               required
@@ -164,7 +170,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
             <input
               type="number"
               step="any"
-              className="form-control"
+              className="form-control font-mono"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               required
@@ -186,7 +192,8 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
                   setLongitude(preset.lon);
                 }}
               >
-                📍 {preset.name}
+                <MapPin size={16} strokeWidth={1.5} style={{ verticalAlign: "middle", marginRight: "3px" }} />
+                <span>{preset.name}</span>
               </button>
             ))}
           </div>
@@ -196,7 +203,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
           <label>Needed By (ISO Timestamp)</label>
           <input
             type="text"
-            className="form-control"
+            className="form-control font-mono"
             value={neededBy}
             onChange={(e) => setNeededBy(e.target.value)}
             placeholder="e.g. 2026-09-20T12:00:00Z"
@@ -205,7 +212,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
 
         <button
           type="submit"
-          className="btn btn-primary"
+          className="btn btn-secondary"
           style={{ width: "100%", padding: "0.75rem", marginTop: "1rem" }}
           disabled={loading}
         >

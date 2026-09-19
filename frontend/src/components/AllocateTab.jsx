@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from "react";
+import {
+  Zap,
+  Award,
+  Check,
+  Truck,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Sparkles,
+} from "lucide-react";
 
 export default function AllocateTab({
   demands,
@@ -79,11 +89,12 @@ export default function AllocateTab({
       <div className="section-panel" style={{ marginBottom: "1.5rem" }}>
         <div className="panel-header">
           <h2 className="panel-title">
-            <span>⚡</span> Deterministic Allocation Engine Explorer
+            <Zap size={16} strokeWidth={1.5} />
+            <span>Deterministic Allocation Engine Explorer</span>
           </h2>
         </div>
         <div className="panel-body">
-          <p style={{ color: "var(--text-secondary)", marginBottom: "1rem", fontSize: "0.95rem" }}>
+          <p style={{ color: "var(--muted)", marginBottom: "1rem", fontSize: "0.95rem" }}>
             The RootCause Allocation Engine applies strict hard-constraint filtering, reserve protection,
             and a 100-point multi-variable scoring model to match life-saving resources in real time.
           </p>
@@ -118,7 +129,7 @@ export default function AllocateTab({
                   onChange={(e) => setAllowPartial(e.target.checked)}
                   style={{ width: "18px", height: "18px" }}
                 />
-                <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                <span style={{ color: "var(--text)", fontWeight: 600 }}>
                   Allow Partial Fulfillment (split capacity)
                 </span>
               </label>
@@ -128,44 +139,47 @@ export default function AllocateTab({
           {currentDemand && (
             <div
               style={{
-                background: "#0f172a",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
+                background: "var(--raised)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--radius-btn)",
                 padding: "0.75rem 1rem",
                 display: "flex",
                 gap: "1.5rem",
                 fontSize: "0.85rem",
-                color: "var(--text-secondary)",
+                color: "var(--muted)",
                 marginBottom: "1rem",
                 flexWrap: "wrap",
               }}
             >
               <span><strong>Requester:</strong> {currentDemand.requester}</span>
               <span><strong>Location:</strong> {currentDemand.location}</span>
-              <span><strong>Urgency:</strong> <span style={{ color: "#fda4af" }}>{currentDemand.urgency}</span></span>
-              <span><strong>Requested:</strong> {currentDemand.quantity} units</span>
+              <span><strong>Urgency:</strong> <span className={`badge badge-${currentDemand.urgency?.toLowerCase()}`}>{currentDemand.urgency}</span></span>
+              <span><strong>Requested:</strong> <span className="font-mono">{currentDemand.quantity}</span> units</span>
               <span><strong>Status:</strong> {currentDemand.status}</span>
             </div>
           )}
 
           <button
-            className="btn btn-primary"
-            style={{ width: "100%", padding: "0.75rem", fontSize: "1rem" }}
+            className="btn btn-secondary"
+            style={{ width: "100%", padding: "0.75rem", fontSize: "0.95rem" }}
             onClick={handleAllocate}
             disabled={loading || !selectedDemandId}
           >
-            {loading ? "Computing Multi-Variable Scoring..." : "⚡ Run Deterministic Allocation Engine"}
+            <Zap size={16} strokeWidth={1.5} />
+            <span>{loading ? "Computing Multi-Variable Scoring..." : "Run Deterministic Allocation Engine"}</span>
           </button>
 
           {errorMsg && (
-            <div style={{ color: "#fb7185", background: "rgba(244,63,94,0.1)", padding: "0.75rem", borderRadius: "6px", marginTop: "1rem" }}>
-              ⚠️ {errorMsg}
+            <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginTop: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <AlertTriangle size={16} strokeWidth={1.5} />
+              <span>{errorMsg}</span>
             </div>
           )}
 
           {actionSuccessMsg && (
-            <div style={{ color: "#4ade80", background: "rgba(16,185,129,0.1)", padding: "0.75rem", borderRadius: "6px", marginTop: "1rem" }}>
-              ✅ {actionSuccessMsg}
+            <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginTop: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <CheckCircle2 size={16} strokeWidth={1.5} />
+              <span>{actionSuccessMsg}</span>
             </div>
           )}
         </div>
@@ -182,18 +196,18 @@ export default function AllocateTab({
               <h2 style={{ fontSize: "1.5rem", fontWeight: 800 }}>
                 {matchResult.recommendation.provider}
               </h2>
-              <div style={{ color: "var(--text-secondary)", fontSize: "0.9rem" }}>
-                {matchResult.recommendation.allocated_quantity} units allocated &bull; Located {matchResult.recommendation.distance_km?.toFixed(1)} km away
+              <div style={{ color: "var(--muted)", fontSize: "0.9rem" }}>
+                <span className="font-mono">{matchResult.recommendation.allocated_quantity}</span> units allocated &bull; Located <span className="font-mono">{matchResult.recommendation.distance_km?.toFixed(1)}</span> km away
               </div>
             </div>
 
             <div style={{ textAlign: "right" }}>
               <div className="score-badge">
-                <span>⭐</span>
+                <Award size={16} strokeWidth={1.5} />
                 <span>{matchResult.recommendation.score?.toFixed(1)}</span>
                 <span style={{ fontSize: "0.8rem", opacity: 0.8 }}>/ 100</span>
               </div>
-              <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>
+              <div style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "4px" }}>
                 Deterministic Allocation Score
               </div>
             </div>
@@ -201,58 +215,58 @@ export default function AllocateTab({
 
           {/* Scoring Rubric Breakdown */}
           {matchResult.recommendation.breakdown && (
-            <div style={{ background: "#0b0f19", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "1.25rem", marginBottom: "1.25rem" }}>
-              <h3 style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            <div style={{ background: "var(--raised)", border: "1px solid var(--border)", borderRadius: "var(--radius-card)", padding: "1.25rem", marginBottom: "1.25rem" }}>
+              <h3 style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                 Mathematical Score Factor Attribution
               </h3>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
                     <span>Resource Type Match</span>
-                    <strong>{matchResult.recommendation.breakdown.resource_compatibility} / 30</strong>
+                    <strong className="font-mono">{matchResult.recommendation.breakdown.resource_compatibility} / 30</strong>
                   </div>
                   <div className="breakdown-bar">
-                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.resource_compatibility / 30) * 100}%`, background: "#38bdf8" }} />
+                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.resource_compatibility / 30) * 100}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
                     <span>Urgency Multiplier</span>
-                    <strong>{matchResult.recommendation.breakdown.urgency_weight} / 25</strong>
+                    <strong className="font-mono">{matchResult.recommendation.breakdown.urgency_weight} / 25</strong>
                   </div>
                   <div className="breakdown-bar">
-                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.urgency_weight / 25) * 100}%`, background: "#f43f5e" }} />
+                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.urgency_weight / 25) * 100}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
                     <span>Quantity Capacity</span>
-                    <strong>{matchResult.recommendation.breakdown.quantity_availability} / 20</strong>
+                    <strong className="font-mono">{matchResult.recommendation.breakdown.quantity_availability} / 20</strong>
                   </div>
                   <div className="breakdown-bar">
-                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.quantity_availability / 20) * 100}%`, background: "#10b981" }} />
+                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.quantity_availability / 20) * 100}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
                     <span>Proximity (Haversine)</span>
-                    <strong>{matchResult.recommendation.breakdown.geographic_distance?.toFixed(1)} / 15</strong>
+                    <strong className="font-mono">{matchResult.recommendation.breakdown.geographic_distance?.toFixed(1)} / 15</strong>
                   </div>
                   <div className="breakdown-bar">
-                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.geographic_distance / 15) * 100}%`, background: "#a855f7" }} />
+                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.geographic_distance / 15) * 100}%` }} />
                   </div>
                 </div>
 
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem" }}>
                     <span>Time Buffer</span>
-                    <strong>{matchResult.recommendation.breakdown.time_compatibility} / 10</strong>
+                    <strong className="font-mono">{matchResult.recommendation.breakdown.time_compatibility} / 10</strong>
                   </div>
                   <div className="breakdown-bar">
-                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.time_compatibility / 10) * 100}%`, background: "#f59e0b" }} />
+                    <div className="breakdown-fill" style={{ width: `${(matchResult.recommendation.breakdown.time_compatibility / 10) * 100}%` }} />
                   </div>
                 </div>
               </div>
@@ -262,10 +276,10 @@ export default function AllocateTab({
           {/* Key Justification Reasons */}
           {matchResult.recommendation.reasons && (
             <div style={{ marginBottom: "1.25rem" }}>
-              <h3 style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginBottom: "0.5rem" }}>
+              <h3 style={{ fontSize: "13px", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
                 Transparent Decision Factors:
               </h3>
-              <ul style={{ paddingLeft: "1.2rem", color: "var(--text-primary)", fontSize: "0.9rem", lineHeight: 1.6 }}>
+              <ul style={{ paddingLeft: "1.2rem", color: "var(--text)", fontSize: "0.9rem", lineHeight: 1.6 }}>
                 {matchResult.recommendation.reasons.map((r, idx) => (
                   <li key={idx}>{r}</li>
                 ))}
@@ -277,9 +291,10 @@ export default function AllocateTab({
           {matchResult.explanation && (
             <div className="ai-box">
               <div className="ai-header">
-                <span>🤖</span> Amazon Bedrock / Operational Narrative Explanation
+                <Sparkles size={16} strokeWidth={1.5} />
+                <span>Amazon Bedrock / Operational Narrative Explanation</span>
               </div>
-              <p style={{ color: "#e2e8f0", fontSize: "0.95rem", lineHeight: 1.6, fontStyle: "italic" }}>
+              <p style={{ color: "var(--text)", fontSize: "0.95rem", lineHeight: 1.6, fontStyle: "italic" }}>
                 "{matchResult.explanation}"
               </p>
             </div>
@@ -289,47 +304,50 @@ export default function AllocateTab({
           <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
             {matchResult.allocation_id && !matchResult.isConfirmed && (
               <button
-                className="btn btn-success"
+                className="btn btn-secondary"
                 onClick={() => handleConfirm(matchResult.allocation_id)}
               >
-                ✅ Confirm Allocation & Reserve Inventory
+                <Check size={16} strokeWidth={1.5} />
+                <span>Confirm Allocation &amp; Reserve Inventory</span>
               </button>
             )}
 
             {matchResult.allocation_id && matchResult.isConfirmed && !matchResult.isCompleted && (
               <button
-                className="btn btn-primary"
+                className="btn btn-secondary"
                 onClick={() => handleComplete(matchResult.allocation_id)}
               >
-                🚚 Complete Transfer & Fulfill Demand
+                <Truck size={16} strokeWidth={1.5} />
+                <span>Complete Transfer &amp; Fulfill Demand</span>
               </button>
             )}
 
             {matchResult.isCompleted && (
-              <span className="badge badge-status-fulfilled" style={{ padding: "0.5rem 1rem", fontSize: "0.9rem" }}>
-                ✓ TRANSFER COMPLETED & DELIVERED
+              <span className="badge badge-status-fulfilled" style={{ padding: "0.5rem 1rem", fontSize: "0.85rem", display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                <CheckCircle2 size={16} strokeWidth={1.5} />
+                <span>TRANSFER COMPLETED &amp; DELIVERED</span>
               </span>
             )}
           </div>
 
           {/* Alternative Candidates */}
           {matchResult.alternatives && matchResult.alternatives.length > 0 && (
-            <div style={{ marginTop: "2rem", borderTop: "1px solid var(--border-color)", paddingTop: "1.5rem" }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.75rem" }}>
+            <div style={{ marginTop: "2rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>
+              <h3 style={{ fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", fontWeight: 600, marginBottom: "0.75rem" }}>
                 Ranked Alternative Providers ({matchResult.alternatives.length})
               </h3>
               <div className="alt-grid">
                 {matchResult.alternatives.map((alt, idx) => (
                   <div key={idx} className="alt-card">
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <strong style={{ color: "var(--text-primary)" }}>{alt.provider}</strong>
-                      <span className="badge badge-low">{alt.score?.toFixed(1)} pts</span>
+                      <strong style={{ color: "var(--text)" }}>{alt.provider}</strong>
+                      <span className="badge badge-low font-mono">{alt.score?.toFixed(1)} pts</span>
                     </div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", margin: "0.4rem 0" }}>
-                      {alt.location} &bull; {alt.distance_km?.toFixed(1)} km away
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted)", margin: "0.4rem 0" }}>
+                      {alt.location} &bull; <span className="font-mono">{alt.distance_km?.toFixed(1)}</span> km away
                     </div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                      Usable capacity: {alt.usable_quantity} units
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                      Usable capacity: <span className="font-mono">{alt.usable_quantity}</span> units
                     </div>
                   </div>
                 ))}
@@ -341,19 +359,20 @@ export default function AllocateTab({
 
       {/* No Match Scenario */}
       {matchResult && matchResult.status === "NO_MATCH" && (
-        <div style={{ background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.3)", borderRadius: "12px", padding: "1.5rem", marginTop: "1.5rem" }}>
-          <h3 style={{ color: "#fda4af", fontSize: "1.2rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-            ❌ No Eligible Resource Found
+        <div style={{ background: "var(--status-critical-bg)", border: "1px solid var(--status-critical)", borderRadius: "var(--radius-card)", padding: "1.5rem", marginTop: "1.5rem" }}>
+          <h3 style={{ color: "var(--status-critical)", fontSize: "1.2rem", fontWeight: 700, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <XCircle size={16} strokeWidth={1.5} />
+            <span>No Eligible Resource Found</span>
           </h3>
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginBottom: "1rem" }}>
+          <p style={{ color: "var(--muted)", fontSize: "0.95rem", marginBottom: "1rem" }}>
             The deterministic engine checked all active supplies against this demand's hard constraints,
             but none satisfied all safety criteria.
           </p>
-          <div style={{ color: "var(--text-primary)", fontSize: "0.9rem" }}>
+          <div style={{ color: "var(--text)", fontSize: "0.9rem" }}>
             <strong>Rejection Reasons:</strong>
             <ul style={{ paddingLeft: "1.2rem", marginTop: "0.5rem", lineHeight: 1.6 }}>
               {matchResult.reasons?.map((reason, idx) => (
-                <li key={idx} style={{ color: "#fca5a5" }}>{reason}</li>
+                <li key={idx} style={{ color: "var(--status-critical)" }}>{reason}</li>
               ))}
             </ul>
           </div>
