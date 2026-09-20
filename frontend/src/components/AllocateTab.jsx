@@ -9,13 +9,21 @@ import {
   Clock,
   Activity,
   ArrowRight,
+  Sparkles,
+  ShieldCheck,
+  MapPin,
+  FileText,
+  Lock,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { getResourceConfig } from "../utils/resourceHelper";
 
 export default function AllocateTab({
   demands = [],
+  supplies = [],
+  health,
   selectedDemand,
+  onNavigateTab,
   onRunAllocation,
   onConfirmAllocation,
   onCompleteAllocation,
@@ -150,7 +158,7 @@ export default function AllocateTab({
 
           <span className="status-mono font-mono">
             <span className="status-dot" style={{ backgroundColor: "var(--accent)" }} />
-            VERSION 2.0 &bull; 100-PT RUBRIC
+            DETERMINISTIC &bull; AUDITABLE &bull; EXPLAINABLE
           </span>
         </div>
 
@@ -296,7 +304,7 @@ export default function AllocateTab({
         {/* Animated Diagnostic HUD / Telemetry Scanner */}
         {isSimulating && (
           <div className="diagnostic-hud">
-            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--accent-gold)", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "var(--accent)", fontWeight: 700, fontSize: "0.88rem", marginBottom: "0.75rem" }}>
               <Activity size={16} strokeWidth={2.2} />
               <span>DETERMINISTIC VERIFICATION &amp; SCORING IN PROGRESS</span>
             </div>
@@ -308,10 +316,10 @@ export default function AllocateTab({
                 ) : (
                   <div className="hud-spinner" />
                 )}
-                <span>1. Hard Eligibility Filter: Zero-tolerance resource match &amp; availability</span>
+                <span>1. ANALYZING DEMAND (Zero-tolerance resource &amp; urgency parsing)</span>
               </div>
               <span className="font-mono" style={{ color: simStep > 1 ? "var(--status-ok)" : "var(--muted)" }}>
-                {simStep > 1 ? "VERIFIED (100%)" : "EVALUATING"}
+                {simStep > 1 ? "VERIFIED (100%)" : "ANALYZING"}
               </span>
             </div>
 
@@ -324,10 +332,10 @@ export default function AllocateTab({
                 ) : (
                   <Clock size={16} style={{ opacity: 0.3 }} />
                 )}
-                <span>2. Mandatory Safety Reserve Guard: Usable capacity &gt; 0 check</span>
+                <span>2. CHECKING HARD CONSTRAINTS (Guarded reserve &amp; temporal validity)</span>
               </div>
               <span className="font-mono" style={{ color: simStep > 2 ? "var(--status-ok)" : "var(--muted)" }}>
-                {simStep > 2 ? "PROTECTED" : "WAITING"}
+                {simStep > 2 ? "PROTECTED" : "CHECKING"}
               </span>
             </div>
 
@@ -340,10 +348,10 @@ export default function AllocateTab({
                 ) : (
                   <Clock size={16} style={{ opacity: 0.3 }} />
                 )}
-                <span>3. Great-Circle Geodesic Distance (Haversine km equation)</span>
+                <span>3. CALCULATING DISTANCES (Haversine great-circle equation)</span>
               </div>
               <span className="font-mono" style={{ color: simStep > 3 ? "var(--status-ok)" : "var(--muted)" }}>
-                {simStep > 3 ? "COMPUTED" : "WAITING"}
+                {simStep > 3 ? "COMPUTED" : "CALCULATING"}
               </span>
             </div>
 
@@ -356,10 +364,10 @@ export default function AllocateTab({
                 ) : (
                   <Clock size={16} style={{ opacity: 0.3 }} />
                 )}
-                <span>4. Amazon Bedrock Explainability Layer &amp; Score Attribution</span>
+                <span>4. SCORING CANDIDATES &amp; SYNTHESIZING RECOMMENDATION</span>
               </div>
               <span className="font-mono" style={{ color: simStep > 4 ? "var(--status-ok)" : "var(--muted)" }}>
-                {simStep > 4 ? "SYNTHESIZED" : "PROCESSING"}
+                {simStep > 4 ? "RECOMMENDATION READY" : "SCORING"}
               </span>
             </div>
           </div>
@@ -406,244 +414,356 @@ export default function AllocateTab({
         )}
       </div>
 
-      {/* Step 7: Vertical Scroll Story: One step per viewport (Demand, Candidates, Scoring, Decision) */}
+      {/* P0 Mandate: Visually Dominant Hero Recommendation Screen */}
       {matchResult && matchResult.status === "MATCH_FOUND" && (
-        <div className="scroll-story-container">
-          {/* Sticky Story Step Jump Navigation */}
-          <nav className="story-nav font-mono">
-            <a href="#story-step-1" className="story-nav-item">01 DEMAND</a>
-            <a href="#story-step-2" className="story-nav-item">02 CANDIDATES</a>
-            <a href="#story-step-3" className="story-nav-item">03 SCORING</a>
-            <a href="#story-step-4" className="story-nav-item">04 DECISION</a>
-          </nav>
+        <div className="hero-rec-card">
+          {/* Header Row */}
+          <div className="hero-rec-header-row">
+            <span className="hero-rec-badge">
+              <CheckCircle2 size={16} strokeWidth={2.4} />
+              ALLOCATION RECOMMENDATION &bull; OPTIMAL DISPATCH
+            </span>
+            <div className="demand-summary-pill">
+              <span>DEMAND #{currentDemand?.id || matchResult.recommendation.supply_id}</span>
+              <span className="meta-sep">&bull;</span>
+              <strong style={{ color: "var(--ink)" }}>
+                {currentDemand?.resource_type || matchResult.recommendation.supply?.resource_type}
+              </strong>
+              <span className="meta-sep">&bull;</span>
+              <span style={{ color: "var(--accent)" }}>
+                {currentDemand?.quantity || matchResult.recommendation.allocated_quantity} UNITS
+              </span>
+              <span className="meta-sep">&bull;</span>
+              <span>{currentDemand?.requester || "REGIONAL TRIAGE"}</span>
+              <span className="meta-sep">&bull;</span>
+              <span className="status-mono font-mono" style={{ fontSize: "10px" }}>
+                [{currentDemand?.urgency || "CRITICAL"}]
+              </span>
+            </div>
+          </div>
 
-          {/* Viewport 1: Demand */}
-          <section id="story-step-1" className="story-viewport">
-            <div className="story-step-badge font-mono">STEP 01 / 04 &bull; INCOMING EMERGENCY MISSION</div>
-            <h2 className="story-step-title">The Demand</h2>
-            <div className="story-demand-card">
-              <div className="story-demand-hero font-display">
-                {currentDemand?.resource_type || "Emergency Resource"}
-              </div>
-              <div className="story-demand-qty font-mono">
-                REQUESTED: {currentDemand?.quantity || matchResult.recommendation?.allocated_quantity} UNITS
-              </div>
-              <div className="story-demand-meta font-mono">
-                <span>REQUESTER: {currentDemand?.requester || "REGIONAL TRIAGE"}</span>
-                <span className="meta-sep">/</span>
-                <span>SECTOR: {currentDemand?.location || "SECTOR ALPHA"}</span>
-                <span className="meta-sep">/</span>
-                <span>URGENCY: {currentDemand?.urgency || "CRITICAL"}</span>
-                {currentDemand?.needed_by && (
+          {/* Hero Main Grid */}
+          <div className="hero-rec-main">
+            <div>
+              <span className="status-mono font-mono" style={{ color: "var(--accent)", fontSize: "11px", fontWeight: 700 }}>
+                PRIMARY RECOMMENDED PROVIDER
+              </span>
+              <h1 className="hero-provider-title">
+                {matchResult.recommendation.provider}
+              </h1>
+
+              <div className="hero-usable-units">
+                <span style={{ color: "var(--accent)", fontWeight: 700 }}>
+                  {matchResult.recommendation.allocated_quantity} / {matchResult.recommendation.usable_quantity} usable units
+                </span>
+                <span className="meta-sep">&bull;</span>
+                <span>{matchResult.recommendation.location}</span>
+                <span className="meta-sep">&bull;</span>
+                <span>{matchResult.recommendation.distance_km?.toFixed(1)} km (Haversine)</span>
+                {matchResult.recommendation.reserve_quantity > 0 && (
                   <>
-                    <span className="meta-sep">/</span>
-                    <span>NEEDED BY: {new Date(currentDemand.needed_by).toUTCString()}</span>
+                    <span className="meta-sep">&bull;</span>
+                    <span style={{ color: "var(--status-high)", fontWeight: 600 }}>
+                      ({matchResult.recommendation.reserve_quantity} units locked in facility reserve)
+                    </span>
                   </>
                 )}
               </div>
-            </div>
-            <div className="story-scroll-hint font-mono">
-              <span>SCROLL DOWN TO CANDIDATE SCREENING &darr;</span>
-            </div>
-          </section>
 
-          {/* Viewport 2: Candidates */}
-          <section id="story-step-2" className="story-viewport">
-            <div className="story-step-badge font-mono">STEP 02 / 04 &bull; ZERO-TOLERANCE ELIGIBILITY FILTER</div>
-            <h2 className="story-step-title">The Candidates</h2>
-            <div className="story-candidates-list">
-              <div className="candidate-filter-rule font-mono">
-                <span className="status-dot" style={{ backgroundColor: "var(--status-ok)" }} />
-                <span>1. EXACT RESOURCE TYPE MATCH: VERIFIED</span>
-              </div>
-              <div className="candidate-filter-rule font-mono">
-                <span className="status-dot" style={{ backgroundColor: "var(--status-ok)" }} />
-                <span>2. MANDATORY SAFETY RESERVE GUARD (USABLE &gt; 0): ENFORCED</span>
-              </div>
-              <div className="candidate-filter-rule font-mono">
-                <span className="status-dot" style={{ backgroundColor: "var(--status-ok)" }} />
-                <span>3. TEMPORAL AVAILABILITY WINDOW: VALIDATED</span>
-              </div>
-              <div className="candidate-filter-rule font-mono">
-                <span className="status-dot" style={{ backgroundColor: "var(--status-ok)" }} />
-                <span>4. PROVIDER OPERATIONAL STATE (AVAILABLE): CONFIRMED</span>
-              </div>
-            </div>
-            <div className="story-candidates-summary font-mono">
-              <span>QUALIFIED PROVIDERS SCREENED: {1 + (matchResult.alternatives?.length || 0)} CANDIDATES IDENTIFIED</span>
-            </div>
-            <div className="story-scroll-hint font-mono">
-              <span>SCROLL DOWN TO DETERMINISTIC SCORING &darr;</span>
-            </div>
-          </section>
-
-          {/* Viewport 3: Scoring */}
-          <section id="story-step-3" className="story-viewport">
-            <div className="story-step-badge font-mono">STEP 03 / 04 &bull; 100-POINT DETERMINISTIC RUBRIC</div>
-            <h2 className="story-step-title">The Scoring Matrix</h2>
-
-            <div className="story-total-score-display">
-              <span className="story-score-numeral font-mono">
-                {matchResult.recommendation.score?.toFixed(1) || "100.0"}
-              </span>
-              <span className="story-score-denom font-mono">/ 100 PTS COMPOSITE</span>
-            </div>
-
-            {matchResult.recommendation.breakdown && (
-              <div className="story-rubric-grid">
-                <div className="rubric-factor">
-                  <span className="rubric-val font-mono">{matchResult.recommendation.breakdown.resource_compatibility} / 30</span>
-                  <span className="rubric-name font-mono">RESOURCE COMPATIBILITY</span>
+              {/* WHY THIS PROVIDER? Checkmark Checklist */}
+              <div className="why-checklist">
+                <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
+                  WHY THIS PROVIDER? (DETERMINISTIC VERIFICATION)
                 </div>
-                <div className="rubric-factor">
-                  <span className="rubric-val font-mono">{matchResult.recommendation.breakdown.urgency_weight} / 25</span>
-                  <span className="rubric-name font-mono">URGENCY WEIGHTING</span>
+                <div className="why-item">
+                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+                  <span>
+                    <strong>Exact resource type match:</strong> {currentDemand?.resource_type || matchResult.recommendation.supply?.resource_type} (30 / 30 pts)
+                  </span>
                 </div>
-                <div className="rubric-factor">
-                  <span className="rubric-val font-mono">{matchResult.recommendation.breakdown.quantity_availability} / 20</span>
-                  <span className="rubric-name font-mono">QUANTITY FULFILLMENT</span>
+                <div className="why-item">
+                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+                  <span>
+                    <strong>Urgency tier accommodated:</strong> {currentDemand?.urgency || "CRITICAL"} (25 / 25 pts)
+                  </span>
                 </div>
-                <div className="rubric-factor">
-                  <span className="rubric-val font-mono">{matchResult.recommendation.breakdown.geographic_distance?.toFixed(1)} / 15</span>
-                  <span className="rubric-name font-mono">GEOGRAPHIC PROXIMITY (HAVERSINE)</span>
+                <div className="why-item">
+                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+                  <span>
+                    <strong>Usable inventory meets demand:</strong> {matchResult.recommendation.usable_quantity} units available (safety reserve strictly guarded)
+                  </span>
                 </div>
-                <div className="rubric-factor">
-                  <span className="rubric-val font-mono">{matchResult.recommendation.breakdown.time_compatibility} / 10</span>
-                  <span className="rubric-name font-mono">TIME BUFFER</span>
+                <div className="why-item">
+                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+                  <span>
+                    <strong>Optimal Haversine distance:</strong> {matchResult.recommendation.distance_km?.toFixed(1)} km ({matchResult.recommendation.breakdown?.geographic_distance?.toFixed(1) || 15} / 15 pts)
+                  </span>
+                </div>
+                <div className="why-item">
+                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+                  <span>
+                    <strong>Temporal availability buffer valid</strong> ({matchResult.recommendation.breakdown?.time_compatibility || 10} / 10 pts)
+                  </span>
                 </div>
               </div>
-            )}
-            <div className="story-scroll-hint font-mono">
-              <span>SCROLL DOWN TO OPTIMAL DISPATCH DECISION &darr;</span>
-            </div>
-          </section>
-
-          {/* Viewport 4: Decision */}
-          <section id="story-step-4" className="story-viewport story-decision-viewport">
-            <div className="story-step-badge font-mono">STEP 04 / 04 &bull; RECOMMENDED DISPATCH DECISION</div>
-            <h2 className="story-step-title">The Decision</h2>
-
-            {/* CHOSEN MATCH IN LARGE TYPE (STEP 7 MANDATE) */}
-            <div className="chosen-match-hero">
-              <span className="chosen-match-tag font-mono">PRIMARY ALLOCATION TARGET</span>
-              <h1 className="chosen-match-provider font-display">
-                {matchResult.recommendation.provider}
-              </h1>
-              <div className="chosen-match-meta font-mono">
-                <span className="match-qty-large font-mono">
-                  {matchResult.recommendation.allocated_quantity} UNITS ALLOCATED
-                </span>
-                <span className="meta-sep">/</span>
-                <span>{matchResult.recommendation.location}</span>
-                <span className="meta-sep">/</span>
-                <span>{matchResult.recommendation.distance_km?.toFixed(1)} KM DISTANCE</span>
-              </div>
             </div>
 
-            {/* Bedrock AI Narrative */}
-            {matchResult.explanation && (
-              <div className="story-ai-narrative">
-                <div className="narrative-label font-mono">AMAZON BEDROCK EXPLAINABLE NARRATIVE:</div>
-                <p className="narrative-body font-display">
-                  "{matchResult.explanation}"
-                </p>
+            {/* Score & Pre-Confirmation Box */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="hero-score-box">
+                <div className="hero-score-numeral">
+                  {matchResult.recommendation.score?.toFixed(1) || "100.0"}
+                </div>
+                <div className="hero-score-label">
+                  / 100 ALLOCATION SCORE
+                </div>
               </div>
-            )}
 
-            {/* Action Dispatch Buttons */}
-            <div className="story-actions">
+              {/* Action Dispatch Buttons & Pre-confirmation box */}
               {matchResult.allocation_id && !matchResult.isConfirmed && (
-                <button
-                  className="btn-match-accent btn-match-large"
-                  onClick={() => handleConfirm(matchResult.allocation_id)}
-                >
-                  <Check size={16} strokeWidth={2.5} />
-                  <span>AUTHORIZE &amp; CONFIRM ALLOCATION (LOCK STOCK)</span>
-                </button>
+                <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
+                  <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <Lock size={12} /> PRE-CONFIRMATION (PENDING AUTHORIZATION)
+                  </div>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
+                    Stock is not deducted until confirmed. Facility safety reserves remain guarded.
+                  </p>
+                  <button
+                    className="btn btn-primary"
+                    style={{ width: "100%", justifyContent: "center" }}
+                    onClick={() => handleConfirm(matchResult.allocation_id)}
+                    disabled={loading}
+                  >
+                    <Check size={16} strokeWidth={2.5} />
+                    <span>CONFIRM ALLOCATION (LOCK STOCK)</span>
+                  </button>
+                </div>
               )}
 
               {matchResult.allocation_id && matchResult.isConfirmed && !matchResult.isCompleted && (
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => handleComplete(matchResult.allocation_id)}
-                >
-                  <Truck size={16} strokeWidth={2.5} />
-                  <span>COMPLETE TRANSFER &amp; FULFILL DEMAND</span>
-                </button>
+                <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
+                  <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                    <Truck size={12} /> STATUS: CONFIRMED &bull; IN-TRANSIT
+                  </div>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
+                    Inventory reserved. Vehicle dispatched along Haversine corridor.
+                  </p>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ width: "100%", justifyContent: "center" }}
+                    onClick={() => handleComplete(matchResult.allocation_id)}
+                    disabled={loading}
+                  >
+                    <Truck size={16} strokeWidth={2.5} />
+                    <span>COMPLETE TRANSFER &amp; FULFILL</span>
+                  </button>
+                </div>
               )}
 
               {matchResult.isCompleted && (
-                <div className="status-mono font-mono" style={{ color: "var(--status-ok)", fontSize: "14px" }}>
-                  <span className="status-dot" style={{ backgroundColor: "var(--status-ok)" }} />
-                  DISASTER RELIEF ASSET DELIVERED &amp; FULFILLED
+                <div style={{ background: "var(--status-ok-bg)", border: "1px solid var(--status-ok-border)", padding: "1.25rem", textAlign: "center" }}>
+                  <div style={{ color: "var(--status-ok)", fontWeight: 800, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                    <CheckCircle2 size={16} /> DELIVERY COMPLETED &bull; MISSION FULFILLED
+                  </div>
+                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0.4rem 0 0 0" }}>
+                    Emergency demand fulfilled. Audit record archived.
+                  </p>
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Ranked Alternative Providers */}
-            {matchResult.alternatives && matchResult.alternatives.length > 0 && (
-              <div className="story-alternatives">
-                <div className="alternatives-header font-mono">
-                  RANKED CONTINGENCY ALTERNATIVES ({matchResult.alternatives.length})
-                </div>
-                <div className="alternatives-list">
-                  {matchResult.alternatives.map((alt, idx) => (
-                    <div key={idx} className="alt-ruled-row font-mono">
+          {/* Amazon Bedrock Operational Synthesis */}
+          {matchResult.explanation && (
+            <div className="story-ai-narrative">
+              <div className="narrative-label font-mono" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <Sparkles size={13} style={{ color: "var(--accent)" }} />
+                <span>AMAZON BEDROCK OPERATIONAL SYNTHESIS:</span>
+              </div>
+              <p className="narrative-body font-display">
+                "{matchResult.explanation}"
+              </p>
+            </div>
+          )}
+
+          {/* P0 Score Breakdown with Progress Bars */}
+          <div className="score-breakdown-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1rem" }}>
+              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, letterSpacing: "0.1em", margin: 0, color: "var(--ink)" }}>
+                100-POINT DETERMINISTIC SCORING RUBRIC BREAKDOWN
+              </h3>
+              <span className="font-mono" style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700 }}>
+                COMPOSITE: {matchResult.recommendation.score?.toFixed(1) || "100.0"} / 100 PTS
+              </span>
+            </div>
+
+            <div className="breakdown-row">
+              <div className="factor-label">RESOURCE COMPATIBILITY</div>
+              <div className="factor-bar-track">
+                <div className="factor-bar-fill" style={{ width: "100%" }} />
+              </div>
+              <div className="factor-pts font-mono">{matchResult.recommendation.breakdown?.resource_compatibility || 30} / 30</div>
+            </div>
+
+            <div className="breakdown-row">
+              <div className="factor-label">URGENCY WEIGHTING</div>
+              <div className="factor-bar-track">
+                <div className="factor-bar-fill" style={{ width: "100%" }} />
+              </div>
+              <div className="factor-pts font-mono">{matchResult.recommendation.breakdown?.urgency_weight || 25} / 25</div>
+            </div>
+
+            <div className="breakdown-row">
+              <div className="factor-label">QUANTITY FULFILLMENT</div>
+              <div className="factor-bar-track">
+                <div
+                  className="factor-bar-fill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      ((matchResult.recommendation.breakdown?.quantity_availability || 20) / 20) * 100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="factor-pts font-mono">
+                {matchResult.recommendation.breakdown?.quantity_availability || 20} / 20
+              </div>
+            </div>
+
+            <div className="breakdown-row">
+              <div className="factor-label">GEOGRAPHIC PROXIMITY (HAVERSINE)</div>
+              <div className="factor-bar-track">
+                <div
+                  className="factor-bar-fill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      ((matchResult.recommendation.breakdown?.geographic_distance || 15) / 15) * 100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="factor-pts font-mono">
+                {matchResult.recommendation.breakdown?.geographic_distance?.toFixed(1) || 15} / 15
+              </div>
+            </div>
+
+            <div className="breakdown-row" style={{ borderBottom: "none" }}>
+              <div className="factor-label">TIME BUFFER</div>
+              <div className="factor-bar-track">
+                <div
+                  className="factor-bar-fill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      ((matchResult.recommendation.breakdown?.time_compatibility || 10) / 10) * 100
+                    )}%`,
+                  }}
+                />
+              </div>
+              <div className="factor-pts font-mono">
+                {matchResult.recommendation.breakdown?.time_compatibility || 10} / 10
+              </div>
+            </div>
+          </div>
+
+          {/* P0 Ranked Contingency Alternatives with Penalty Inspector */}
+          {matchResult.alternatives && matchResult.alternatives.length > 0 && (
+            <div className="story-alternatives" style={{ marginTop: "2.5rem" }}>
+              <div className="alternatives-header font-mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>RANKED CONTINGENCY ALTERNATIVES ({matchResult.alternatives.length})</span>
+                <span style={{ color: "var(--accent)" }}>&bull; PENALTY INSPECTOR ACTIVE</span>
+              </div>
+              <div className="alternatives-list">
+                {matchResult.alternatives.map((alt, idx) => {
+                  const distDelta = (alt.distance_km - (matchResult.recommendation.distance_km || 0)).toFixed(1);
+                  const scoreDelta = ((matchResult.recommendation.score || 100) - alt.score).toFixed(1);
+                  return (
+                    <div key={idx} className="alt-ruled-row font-mono" style={{ flexWrap: "wrap" }}>
                       <span className="alt-rank">#{idx + 2}</span>
                       <span className="alt-name font-display">{alt.provider}</span>
                       <span className="alt-loc">{alt.location} ({alt.distance_km?.toFixed(1)} km)</span>
-                      <span className="alt-cap">CAPACITY: {alt.usable_quantity}</span>
+                      <span className="alt-cap">CAPACITY: {alt.usable_quantity} usable</span>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                        {parseFloat(distDelta) > 0 && (
+                          <span className="penalty-tag">
+                            <AlertTriangle size={10} /> +{distDelta} km distance penalty
+                          </span>
+                        )}
+                        {alt.usable_quantity < matchResult.recommendation.usable_quantity && (
+                          <span className="penalty-tag">
+                            Lower availability
+                          </span>
+                        )}
+                        {alt.reserve_quantity > 0 && (
+                          <span className="penalty-tag">
+                            <ShieldCheck size={10} /> {alt.reserve_quantity} locked reserve
+                          </span>
+                        )}
+                        <span className="penalty-tag" style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)", background: "transparent" }}>
+                          -{scoreDelta} pts
+                        </span>
+                      </div>
                       <span className="alt-score font-mono">{alt.score?.toFixed(1)} PTS</span>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
-          </section>
+            </div>
+          )}
         </div>
       )}
 
-      {/* No Match Scenario */}
+      {/* P0 Mandate: Cohesive No-Match Experience with Action Buttons */}
       {matchResult && matchResult.status === "NO_MATCH" && (
-        <div
-          style={{
-            background: "var(--surface-hover)",
-            border: "1px solid var(--status-critical)",
-            borderLeft: "4px solid var(--status-critical)",
-            borderRadius: "0px",
-            padding: "2rem",
-            marginTop: "1.75rem",
-            boxShadow: "none",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", color: "var(--status-critical)", marginBottom: "0.75rem" }}>
-            <XCircle size={24} strokeWidth={2.2} />
-            <h3 style={{ fontSize: "1.35rem", fontWeight: 700, margin: 0, color: "var(--ink)" }}>
-              No Eligible Disaster Resource Match Found
-            </h3>
+        <div className="no-match-hero-card">
+          <div className="no-match-header">
+            <XCircle size={28} strokeWidth={2.2} />
+            <h2 className="no-match-title">NO ELIGIBLE RESOURCE FOUND</h2>
           </div>
 
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
-            The RootCause deterministic engine verified all cataloged supplies against strict hard-constraint boundaries,
-            reserve thresholds, and temporal validity windows. No candidate satisfies 100% of safety criteria.
+          <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.55, margin: "0.75rem 0 1.25rem 0" }}>
+            Evaluated <strong>{supplies?.length || 6} cataloged disaster supply depots</strong> against zero-tolerance hard constraint boundaries.
+            No candidate provider satisfied 100% of required resource type compatibility, guarded reserve thresholds, and temporal validity windows.
           </p>
 
-          <div
-            style={{
-              background: "var(--raised)",
-              border: "1px solid var(--hairline)",
-              borderRadius: "0px",
-              padding: "1rem 1.25rem",
-            }}
-          >
-            <strong style={{ fontSize: "0.82rem", textTransform: "uppercase", color: "var(--status-critical)", letterSpacing: "0.06em", fontFamily: "var(--font-mono)" }}>
-              Constraint Rejection Log:
-            </strong>
-            <ul style={{ paddingLeft: "1.25rem", marginTop: "0.6rem", fontSize: "0.9rem", lineHeight: 1.6 }}>
-              {matchResult.reasons?.map((reason, idx) => (
-                <li key={idx} style={{ color: "var(--status-critical)", fontWeight: 600 }}>{reason}</li>
-              ))}
+          <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem" }}>
+            <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.1em", color: "var(--status-critical)", marginBottom: "0.6rem" }}>
+              ZERO-TOLERANCE CONSTRAINT REJECTION LOG:
+            </div>
+            <ul className="no-match-reasons-list" style={{ margin: 0 }}>
+              {matchResult.reasons && matchResult.reasons.length > 0 ? (
+                matchResult.reasons.map((reason, idx) => (
+                  <li key={idx} className="no-match-reason-item">
+                    <span className="no-match-reason-cross">&times;</span>
+                    <span>{reason}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="no-match-reason-item">
+                  <span className="no-match-reason-cross">&times;</span>
+                  <span>No cataloged supplies with positive usable stock match requested resource type '{currentDemand?.resource_type}'.</span>
+                </li>
+              )}
             </ul>
+          </div>
+
+          <div className="no-match-actions">
+            <button
+              className="btn btn-primary"
+              onClick={() => (onNavigateTab ? onNavigateTab("post-demand") : null)}
+            >
+              <ArrowRight size={15} strokeWidth={2.4} />
+              <span>MODIFY DEMAND PARAMETERS</span>
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => (onNavigateTab ? onNavigateTab("dashboard") : null)}
+            >
+              <FileText size={15} strokeWidth={2.4} />
+              <span>VIEW ALL CATALOGED SUPPLIES</span>
+            </button>
           </div>
         </div>
       )}

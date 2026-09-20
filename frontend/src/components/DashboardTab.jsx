@@ -110,68 +110,119 @@ export default function DashboardTab({
         <div className="banner-telemetry">
           <div className="telemetry-item">
             <span style={{ color: "var(--status-ok)" }}>●</span>
-            <span>Constraint Filter: <strong>Active (0% Error)</strong></span>
+            <span>Constraint Filter: <strong>Zero-Tolerance Active</strong></span>
           </div>
           <div className="telemetry-item">
-            <span style={{ color: "var(--accent-gold)" }}>●</span>
-            <span>Bedrock GenAI: <strong>Operational</strong></span>
+            <span
+              style={{
+                color:
+                  health?.bedrock_status === "CONNECTED"
+                    ? "var(--status-ok)"
+                    : "var(--text-secondary)",
+              }}
+            >
+              ●
+            </span>
+            <span>
+              Bedrock:{" "}
+              <strong>
+                {health?.bedrock_status === "CONNECTED"
+                  ? "Connected (Live Cloud)"
+                  : "Local Heuristic (Offline Safe)"}
+              </strong>
+            </span>
           </div>
           <div className="telemetry-item">
             <span style={{ color: "var(--status-info)" }}>●</span>
-            <span>Geodesic Engine: <strong>Haversine km</strong></span>
+            <span>Geodesic Engine: <strong>Haversine Proximity</strong></span>
           </div>
         </div>
       </div>
 
-      {/* Editorial Stats: Huge Mono Numerals (96px) + Tiny Uppercase Labels separated by hairline rules */}
+      {/* Editorial Stats: Operational Metrics with Direct Tab Navigation */}
       <div className="editorial-stats">
-        {/* Stat 1: Usable Resources */}
-        <div className="stat-column">
-          <div className="stat-numeral font-mono">
-            {stats?.available_resources ??
-              supplies.filter((s) => s.quantity - s.reserve_quantity > 0).length}
-          </div>
-          <div className="stat-meta">
-            <span className="stat-label">Usable Resource Lots</span>
-            <span className="stat-sub font-mono">{totalUsableUnits} units ready</span>
-          </div>
-        </div>
-
-        {/* Stat 2: Active Demands */}
-        <div className="stat-column">
+        {/* Stat 1: Active Demands */}
+        <div
+          className="stat-column clickable"
+          onClick={() => onNavigateTab && onNavigateTab("post-demand")}
+          title="Click to view and manage active emergency demands"
+          style={{ cursor: "pointer" }}
+        >
           <div className="stat-numeral font-mono">
             {stats?.active_demands ??
               demands.filter((d) => d.status === "pending").length}
           </div>
           <div className="stat-meta">
-            <span className="stat-label">Active Demands</span>
-            <span className="stat-sub font-mono" style={{ color: criticalDemandsCount > 0 ? "var(--accent)" : "var(--muted)" }}>
-              <span className="status-dot" style={{ backgroundColor: criticalDemandsCount > 0 ? "var(--accent)" : "var(--muted)" }} />
+            <span className="stat-label">Active Demands &rarr;</span>
+            <span className="stat-sub font-mono" style={{ color: criticalDemandsCount > 0 ? "var(--accent)" : "var(--text-secondary)" }}>
+              <span className="status-dot" style={{ backgroundColor: criticalDemandsCount > 0 ? "var(--accent)" : "var(--status-ok)" }} />
               {criticalDemandsCount > 0 ? `${criticalDemandsCount} CRITICAL` : "STABLE"} · {totalDemandedUnits} req
             </span>
           </div>
         </div>
 
-        {/* Stat 3: Pending Matches */}
-        <div className="stat-column">
+        {/* Stat 2: Available Resources */}
+        <div
+          className="stat-column clickable"
+          onClick={() => onNavigateTab && onNavigateTab("post-supply")}
+          title="Click to view available emergency resource lots"
+          style={{ cursor: "pointer" }}
+        >
           <div className="stat-numeral font-mono">
-            {stats?.pending_matches ?? 0}
+            {stats?.available_resources ??
+              supplies.filter((s) => s.quantity - s.reserve_quantity > 0).length}
           </div>
           <div className="stat-meta">
-            <span className="stat-label">Draft Recommendations</span>
+            <span className="stat-label">Available Resources &rarr;</span>
+            <span className="stat-sub font-mono">{totalUsableUnits} units usable</span>
+          </div>
+        </div>
+
+        {/* Stat 3: Pending Matches / Recommendations */}
+        <div
+          className="stat-column clickable"
+          onClick={() => onNavigateTab && onNavigateTab("allocate")}
+          title="Click to open Allocation Engine and execute matching"
+          style={{ cursor: "pointer" }}
+        >
+          <div className="stat-numeral font-mono">
+            {stats?.pending_matches ?? demands.filter((d) => d.status === "pending").length}
+          </div>
+          <div className="stat-meta">
+            <span className="stat-label">Pending Matching &rarr;</span>
             <span className="stat-sub font-mono">Awaiting dispatch</span>
           </div>
         </div>
 
-        {/* Stat 4: Fulfilled / Completed Transfers */}
-        <div className="stat-column">
+        {/* Stat 4: Active Transfers */}
+        <div
+          className="stat-column clickable"
+          onClick={() => onNavigateTab && onNavigateTab("activity")}
+          title="Click to view active transfers in progress"
+          style={{ cursor: "pointer" }}
+        >
           <div className="stat-numeral font-mono">
-            {(stats?.accepted_allocations ?? 0) +
-              (stats?.completed_transfers ?? 0)}
+            {stats?.accepted_allocations ?? 0}
           </div>
           <div className="stat-meta">
-            <span className="stat-label">Fulfilled &amp; In-Transit</span>
-            <span className="stat-sub font-mono">{stats?.completed_transfers ?? 0} verified</span>
+            <span className="stat-label">Active Transfers &rarr;</span>
+            <span className="stat-sub font-mono">In transit</span>
+          </div>
+        </div>
+
+        {/* Stat 5: Completed Transfers */}
+        <div
+          className="stat-column clickable"
+          onClick={() => onNavigateTab && onNavigateTab("activity")}
+          title="Click to view fulfilled emergency deliveries"
+          style={{ cursor: "pointer" }}
+        >
+          <div className="stat-numeral font-mono">
+            {stats?.completed_transfers ?? 0}
+          </div>
+          <div className="stat-meta">
+            <span className="stat-label">Completed &rarr;</span>
+            <span className="stat-sub font-mono">Fulfilled</span>
           </div>
         </div>
       </div>

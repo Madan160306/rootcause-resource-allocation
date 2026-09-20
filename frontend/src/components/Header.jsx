@@ -60,43 +60,44 @@ export default function Header({
   const tabs = [
     {
       id: "dashboard",
-      label: "Operations Dashboard",
+      label: "Operations",
       Icon: LayoutDashboard,
       count: demandsCount + suppliesCount,
     },
     {
       id: "allocate",
-      label: "Allocation Engine",
+      label: "Allocation",
       Icon: Zap,
       highlight: true,
     },
     {
       id: "post-demand",
-      label: "Post Demand",
+      label: "Demands",
       Icon: AlertCircle,
       count: demandsCount,
     },
     {
       id: "post-supply",
-      label: "Post Supply",
+      label: "Supplies",
       Icon: Package,
       count: suppliesCount,
     },
     {
       id: "activity",
-      label: "Transfers & Activity",
+      label: "Transfers",
       Icon: ClipboardList,
       count: allocationsCount,
     },
   ];
 
   const isOnline = health && health.status === "healthy";
+  const isBedrockActive = health && health.bedrock_status === "CONNECTED";
 
   return (
     <header className="app-header">
       <div className="header-utility">
         <div className="utility-left">
-          <span className="brand-badge font-mono">AWS FIRST COMMIT 2026</span>
+          <span className="brand-badge font-mono">DETERMINISTIC &bull; AUDITABLE &bull; EXPLAINABLE</span>
         </div>
 
         <div className="header-actions">
@@ -110,7 +111,17 @@ export default function Header({
               className="status-dot"
               style={{ backgroundColor: isOnline ? "var(--status-ok)" : "var(--status-critical)" }}
             />
-            <span>{isOnline ? "ENGINE ONLINE" : "CONNECTING..."}</span>
+            <span>{isOnline ? "ENGINE: ONLINE" : "ENGINE: OFFLINE"}</span>
+          </div>
+
+          <div className="connection-pill font-mono">
+            <span
+              className="status-dot"
+              style={{
+                backgroundColor: isBedrockActive ? "var(--status-ok)" : "var(--muted)",
+              }}
+            />
+            <span>{isBedrockActive ? "BEDROCK: CONNECTED" : "BEDROCK: LOCAL HEURISTIC"}</span>
           </div>
 
           <button
@@ -139,7 +150,7 @@ export default function Header({
         <h1 className="brand-title">RootCause</h1>
         <div className="header-tagline-col">
           <p className="brand-subtitle">
-            Explainable Emergency Resource Allocation &amp; Decision Support Engine
+            Emergency Resource Allocation &amp; Decision Support Engine
           </p>
         </div>
       </div>

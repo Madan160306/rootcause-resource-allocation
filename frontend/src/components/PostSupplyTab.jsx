@@ -181,7 +181,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-group">
-            <label>Resource Category</label>
+            <label>
+              Resource Category
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <select
               className="form-control"
               value={resourceType}
@@ -194,7 +197,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Provider Facility Name</label>
+            <label>
+              Provider Facility Name
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="text"
               className="form-control"
@@ -203,12 +209,18 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
               placeholder="e.g. Bellevue Hospital Center"
               required
             />
+            {!provider.trim() && (
+              <div className="field-inline-error">Provider facility name cannot be empty.</div>
+            )}
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Total Physical Stock Units</label>
+            <label>
+              Total Physical Stock Units
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               className="form-control font-mono"
@@ -217,10 +229,16 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
               onChange={(e) => setQuantity(e.target.value)}
               required
             />
+            {totalQty <= 0 && (
+              <div className="field-inline-error">Physical stock must be greater than zero.</div>
+            )}
           </div>
 
           <div className="form-group">
-            <label>Mandatory Protected Reserve</label>
+            <label>
+              Mandatory Protected Reserve
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               className="form-control font-mono"
@@ -229,11 +247,17 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
               onChange={(e) => setReserveQuantity(e.target.value)}
               required
             />
+            {reserveQty > totalQty && (
+              <div className="field-inline-error">Reserve cannot exceed total stock.</div>
+            )}
           </div>
         </div>
 
         <div className="form-group">
-          <label>Facility Location</label>
+          <label>
+            Facility Location
+            <span className="field-badge required">REQUIRED</span>
+          </label>
           <input
             type="text"
             className="form-control"
@@ -241,6 +265,9 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
             onChange={(e) => setLocation(e.target.value)}
             required
           />
+          {!location.trim() && (
+            <div className="field-inline-error">Facility location cannot be empty.</div>
+          )}
         </div>
 
         <div className="form-group">
@@ -266,7 +293,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <div className="form-row">
           <div className="form-group">
-            <label>Latitude (Geodesic)</label>
+            <label>
+              Latitude (Geodesic)
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               step="any"
@@ -278,7 +308,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Longitude (Geodesic)</label>
+            <label>
+              Longitude (Geodesic)
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               step="any"
@@ -292,7 +325,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <div className="form-row">
           <div className="form-group">
-            <label>Available Until (ISO 8601 UTC)</label>
+            <label>
+              Available Until (ISO 8601 UTC)
+              <span className="field-badge optional">OPTIONAL</span>
+            </label>
             <input
               type="text"
               className="form-control font-mono"
@@ -302,7 +338,10 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Provider Reliability Index (0.50 - 1.00)</label>
+            <label>
+              Provider Reliability Index (0.50 - 1.00)
+              <span className="field-badge optional">OPTIONAL</span>
+            </label>
             <input
               type="number"
               step="0.01"

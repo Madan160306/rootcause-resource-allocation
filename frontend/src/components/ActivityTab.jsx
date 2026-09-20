@@ -6,6 +6,10 @@ import {
   CheckCircle2,
   Building2,
   Award,
+  LayoutGrid,
+  List,
+  ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -16,6 +20,7 @@ export default function ActivityTab({
   loading,
 }) {
   const [filterStatus, setFilterStatus] = useState("ALL");
+  const [viewMode, setViewMode] = useState("cards");
 
   const filteredAllocations = allocations.filter((a) => {
     if (filterStatus === "ALL") return true;
@@ -86,32 +91,60 @@ export default function ActivityTab({
           <span>Emergency Allocation &amp; Transfer Lifecycle Log</span>
         </h2>
 
-        {/* Filter Pills */}
-        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-          <button
-            className={`filter-chip ${filterStatus === "ALL" ? "active" : ""}`}
-            onClick={() => setFilterStatus("ALL")}
-          >
-            All ({allocations.length})
-          </button>
-          <button
-            className={`filter-chip ${filterStatus === "pending" ? "active" : ""}`}
-            onClick={() => setFilterStatus("pending")}
-          >
-            Pending
-          </button>
-          <button
-            className={`filter-chip ${filterStatus === "accepted" ? "active" : ""}`}
-            onClick={() => setFilterStatus("accepted")}
-          >
-            In-Transit
-          </button>
-          <button
-            className={`filter-chip ${filterStatus === "completed" ? "active" : ""}`}
-            onClick={() => setFilterStatus("completed")}
-          >
-            Completed
-          </button>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+          {/* View Mode Toggle */}
+          <div className="view-mode-toggle">
+            <button
+              type="button"
+              className={`view-mode-btn ${viewMode === "cards" ? "active" : ""}`}
+              onClick={() => setViewMode("cards")}
+              title="Operational Flow Cards"
+            >
+              <LayoutGrid size={13} />
+              <span>CARDS</span>
+            </button>
+            <button
+              type="button"
+              className={`view-mode-btn ${viewMode === "table" ? "active" : ""}`}
+              onClick={() => setViewMode("table")}
+              title="Audit Table"
+            >
+              <List size={13} />
+              <span>TABLE</span>
+            </button>
+          </div>
+
+          {/* Filter Pills */}
+          <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+            <button
+              type="button"
+              className={`filter-chip ${filterStatus === "ALL" ? "active" : ""}`}
+              onClick={() => setFilterStatus("ALL")}
+            >
+              All ({allocations.length})
+            </button>
+            <button
+              type="button"
+              className={`filter-chip ${filterStatus === "pending" ? "active" : ""}`}
+              onClick={() => setFilterStatus("pending")}
+            >
+              Pending
+            </button>
+            <button
+              type="button"
+              className={`filter-chip ${filterStatus === "accepted" ? "active" : ""}`}
+              onClick={() => setFilterStatus("accepted")}
+            >
+              In-Transit
+            </button>
+            <button
+              type="button"
+              className={`filter-chip ${filterStatus === "completed" ? "active" : ""}`}
+              onClick={() => setFilterStatus("completed")}
+            >
+              Completed
+            </button>
+          </div>
         </div>
       </div>
 
@@ -125,6 +158,95 @@ export default function ActivityTab({
             <p style={{ fontSize: "0.84rem", marginTop: "0.35rem" }}>
               Run the Allocation Engine to match emergency demands with available facility stock.
             </p>
+          </div>
+        ) : viewMode === "cards" ? (
+          <div className="op-card-grid">
+            {filteredAllocations.map((a) => (
+              <div key={a.id} className="op-flow-card">
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                    <span className="font-mono" style={{ fontWeight: 800, color: "var(--accent)", fontSize: "12px" }}>
+                      AUDIT #{a.id}
+                    </span>
+                    {renderStatusBadge(a.status)}
+                  </div>
+
+                  {/* Operational Flow Route: Provider -> Units -> Requester */}
+                  <div className="op-flow-route">
+                    <div className="op-facility-col">
+                      <span className="op-facility-label">DISPATCH ORIGIN</span>
+                      <span className="op-facility-name">{a.provider}</span>
+                    </div>
+
+                    <div className="op-arrow-col">
+                      <ArrowRight size={18} strokeWidth={2.5} />
+                      <span className="font-mono" style={{ fontSize: "11px", fontWeight: 800, color: "var(--ink)" }}>
+                        {a.allocated_quantity} UNITS
+                      </span>
+                      <span style={{ fontSize: "9.5px", color: "var(--status-ok)", fontWeight: 700 }}>
+                        RESERVE GUARDED
+                      </span>
+                    </div>
+
+                    <div className="op-facility-col" style={{ textAlign: "right" }}>
+                      <span className="op-facility-label">TRIAGE TARGET</span>
+                      <span className="op-facility-name">{a.requester}</span>
+                    </div>
+                  </div>
+
+                  {/* Stepper */}
+                  <div style={{ margin: "1rem 0" }}>
+                    {renderLifecycleStepper(a.status)}
+                  </div>
+
+                  {/* Meta: Score and Route */}
+                  <div className="op-flow-meta">
+                    <span>
+                      <Award size={12} style={{ color: "var(--accent)", verticalAlign: "middle", marginRight: "4px" }} />
+                      SCORE: <strong>{a.score?.toFixed(1)} / 100 PTS</strong>
+                    </span>
+                    <span>HAVERSINE DISPATCH ROUTE</span>
+                  </div>
+
+                  {/* AI Explanation / Rationale */}
+                  <div className="op-flow-narrative">
+                    "{a.explanation || a.reasons?.join(", ") || "Deterministic allocation criteria verified and reserve protected."}"
+                  </div>
+                </div>
+
+                {/* Card Action Footer */}
+                <div style={{ paddingTop: "0.75rem", borderTop: "1px solid var(--hairline)" }}>
+                  {a.status === "pending" && (
+                    <button
+                      className="btn btn-primary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => onConfirmAllocation(a.id)}
+                      disabled={loading}
+                    >
+                      <Check size={14} strokeWidth={2.4} />
+                      <span>CONFIRM ALLOCATION (LOCK STOCK)</span>
+                    </button>
+                  )}
+                  {a.status === "accepted" && (
+                    <button
+                      className="btn btn-secondary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => handleComplete(a.id)}
+                      disabled={loading}
+                    >
+                      <Truck size={14} strokeWidth={2.4} />
+                      <span>COMPLETE TRANSFER &amp; FULFILL</span>
+                    </button>
+                  )}
+                  {a.status === "completed" && (
+                    <div style={{ color: "var(--status-ok)", fontSize: "12px", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem", padding: "0.4rem 0" }}>
+                      <CheckCircle2 size={16} strokeWidth={2.4} />
+                      <span>DELIVERY COMPLETED &bull; ARCHIVED</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>

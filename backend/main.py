@@ -65,12 +65,18 @@ def root():
 
 @app.get("/health")
 def health():
+    bedrock_connected = False
+    if hasattr(explanation_service, "_get_client"):
+        client = explanation_service._get_client()
+        bedrock_connected = client is not None
     return {
         "status": "healthy",
-        "engine": "active",
-        "explanation_mode": "bedrock" if os.environ.get("USE_BEDROCK") else "local",
+        "engine": "online",
+        "bedrock_status": "CONNECTED" if bedrock_connected else "NOT_CONFIGURED",
+        "explanation_mode": "bedrock" if bedrock_connected else "local",
         "storage_mode": "dynamodb" if os.environ.get("USE_DYNAMODB", "").lower() in ("true", "1", "yes") else "local",
     }
+
 
 
 
@@ -306,7 +312,7 @@ DEMO_DEMANDS = [
         "resource_type": "Oxygen Cylinder",
         "quantity": 20,
         "requester": "Riverside Community Clinic",
-        "location": "Manhattan West",
+        "location": "Manhattan West Sector",
         "latitude": 40.7200,
         "longitude": -74.0100,
         "urgency": "CRITICAL",
@@ -331,7 +337,7 @@ DEMO_DEMANDS = [
         "id": 3,
         "resource_type": "Ambulance",
         "quantity": 3,
-        "requester": "Highway Trauma Team",
+        "requester": "Times Square Mass Casualty Unit",
         "location": "Times Square Corridor",
         "latitude": 40.7580,
         "longitude": -73.9855,
@@ -339,6 +345,45 @@ DEMO_DEMANDS = [
         "needed_by": "2026-09-19T14:00:00Z",
         "status": "pending",
         "created_at": "2026-09-19T10:00:00Z",
+    },
+    {
+        "id": 4,
+        "resource_type": "Blood Unit",
+        "quantity": 25,
+        "requester": "Harbor Community Infirmary",
+        "location": "Brooklyn Piers",
+        "latitude": 40.6782,
+        "longitude": -73.9442,
+        "urgency": "MEDIUM",
+        "needed_by": "2026-09-22T18:00:00Z",
+        "status": "pending",
+        "created_at": "2026-09-19T11:20:00Z",
+    },
+    {
+        "id": 5,
+        "resource_type": "Medical Kit",
+        "quantity": 30,
+        "requester": "Suburban Relief Center",
+        "location": "Yonkers Station",
+        "latitude": 40.9312,
+        "longitude": -73.8987,
+        "urgency": "LOW",
+        "needed_by": "2026-09-23T12:00:00Z",
+        "status": "pending",
+        "created_at": "2026-09-19T12:00:00Z",
+    },
+    {
+        "id": 6,
+        "resource_type": "Shelter Kit",
+        "quantity": 50,
+        "requester": "Harlem Evacuation Shelter",
+        "location": "Harlem North",
+        "latitude": 40.8115,
+        "longitude": -73.9465,
+        "urgency": "CRITICAL",
+        "needed_by": "2026-09-20T16:00:00Z",
+        "status": "pending",
+        "created_at": "2026-09-19T13:45:00Z",
     },
 ]
 
@@ -357,10 +402,11 @@ def seed_demo_data():
         demand_repo.add(Demand(**d_dict))
 
     return {
-        "message": "Demo data successfully seeded",
+        "message": "Demo scenario loaded successfully",
         "supplies_loaded": supply_repo.count(),
         "demands_loaded": demand_repo.count(),
     }
+
 
 
 @app.post("/reset")
@@ -370,3 +416,8 @@ def reset_all():
     demand_repo.clear()
     allocation_repo.clear()
     return {"message": "All repositories cleared"}
+
+
+# Seed scenario if fresh start
+if supply_repo.count() == 0 and demand_repo.count() == 0:
+    seed_demo_data()

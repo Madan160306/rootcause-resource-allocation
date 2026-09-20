@@ -158,7 +158,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-group">
-            <label>Resource Category</label>
+            <label>
+              Resource Category
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <select
               className="form-control"
               value={resourceType}
@@ -171,7 +174,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Quantity Units Needed</label>
+            <label>
+              Quantity Units Needed
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               className="form-control font-mono"
@@ -180,12 +186,18 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
               onChange={(e) => setQuantity(e.target.value)}
               required
             />
+            {parseInt(quantity, 10) <= 0 && (
+              <div className="field-inline-error">Quantity must be greater than zero.</div>
+            )}
           </div>
         </div>
 
         <div className="form-row">
           <div className="form-group">
-            <label>Requester Facility / Unit</label>
+            <label>
+              Requester Facility / Unit
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="text"
               className="form-control"
@@ -194,10 +206,16 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
               placeholder="e.g. Field Triage Bravo"
               required
             />
+            {!requester.trim() && (
+              <div className="field-inline-error">Requester facility cannot be empty.</div>
+            )}
           </div>
 
           <div className="form-group">
-            <label>Triage Urgency Rating</label>
+            <label>
+              Triage Urgency Rating
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <select
               className="form-control"
               value={urgency}
@@ -212,7 +230,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
         </div>
 
         <div className="form-group">
-          <label>Location / Sector Name</label>
+          <label>
+            Location / Sector Name
+            <span className="field-badge required">REQUIRED</span>
+          </label>
           <input
             type="text"
             className="form-control"
@@ -220,6 +241,9 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
             onChange={(e) => setLocation(e.target.value)}
             required
           />
+          {!location.trim() && (
+            <div className="field-inline-error">Location sector cannot be empty.</div>
+          )}
         </div>
 
         <div className="form-group">
@@ -245,7 +269,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
 
         <div className="form-row">
           <div className="form-group">
-            <label>Latitude (Geodesic)</label>
+            <label>
+              Latitude (Geodesic)
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               step="any"
@@ -257,7 +284,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Longitude (Geodesic)</label>
+            <label>
+              Longitude (Geodesic)
+              <span className="field-badge required">REQUIRED</span>
+            </label>
             <input
               type="number"
               step="any"
@@ -270,7 +300,10 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
         </div>
 
         <div className="form-group">
-          <label>Delivery Deadline (ISO 8601 UTC)</label>
+          <label>
+            Delivery Deadline (ISO 8601 UTC)
+            <span className="field-badge optional">OPTIONAL</span>
+          </label>
           <input
             type="text"
             className="form-control font-mono"

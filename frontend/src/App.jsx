@@ -258,6 +258,8 @@ export default function App() {
             stats={stats}
             demands={demands}
             supplies={supplies}
+            health={health}
+            onNavigateTab={setActiveTab}
             onSelectDemandForAllocation={handleSelectDemandForAllocation}
             onDeleteSupply={handleDeleteSupply}
             onDeleteDemand={handleDeleteDemand}
@@ -268,7 +270,9 @@ export default function App() {
           <AllocateTab
             demands={demands}
             supplies={supplies}
+            health={health}
             selectedDemand={selectedDemand}
+            onNavigateTab={setActiveTab}
             onRunAllocation={handleRunAllocation}
             onConfirmAllocation={handleConfirmAllocation}
             onCompleteAllocation={handleCompleteAllocation}
