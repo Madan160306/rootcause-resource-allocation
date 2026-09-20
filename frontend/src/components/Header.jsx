@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Sparkles,
 } from "lucide-react";
+import { formatLiveClock } from "../utils/dateHelper";
 
 export default function Header({
   activeTab,
@@ -27,10 +28,7 @@ export default function Header({
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toUTCString().replace("GMT", "UTC")
-      );
+      setCurrentTime(formatLiveClock(new Date()));
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);

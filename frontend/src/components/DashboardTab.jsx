@@ -9,6 +9,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { getResourceConfig } from "../utils/resourceHelper";
+import { formatDateShort } from "../utils/dateHelper";
 
 export default function DashboardTab({
   stats,
@@ -350,13 +351,7 @@ export default function DashboardTab({
                           <>
                             <span className="meta-sep">/</span>
                             <span className="meta-item">
-                              NEEDED:{" "}
-                              {new Date(d.needed_by).toLocaleDateString([], {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                              NEEDED: {formatDateShort(d.needed_by)}
                             </span>
                           </>
                         )}
@@ -489,11 +484,7 @@ export default function DashboardTab({
                           <>
                             <span className="meta-sep">/</span>
                             <span className="meta-item">
-                              UNTIL:{" "}
-                              {new Date(s.available_until).toLocaleDateString([], {
-                                month: "short",
-                                day: "numeric",
-                              })}
+                              UNTIL: {formatDateShort(s.available_until)}
                             </span>
                           </>
                         )}

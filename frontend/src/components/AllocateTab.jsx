@@ -11,12 +11,12 @@ import {
   ArrowRight,
   Sparkles,
   ShieldCheck,
-  MapPin,
   FileText,
   Lock,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { getResourceConfig } from "../utils/resourceHelper";
+import { formatDateShort } from "../utils/dateHelper";
 
 export default function AllocateTab({
   demands = [],
@@ -255,10 +255,16 @@ export default function AllocateTab({
                     {currentDemand.quantity} {resourceConfig.unit}
                   </span>
                 </div>
-                <div style={{ color: "var(--muted)", fontSize: "0.82rem", display: "flex", gap: "0.5rem" }}>
+                <div style={{ color: "var(--muted)", fontSize: "0.82rem", display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
                   <span>{currentDemand.requester}</span>
                   <span>&bull;</span>
                   <span>{currentDemand.location}</span>
+                  {currentDemand.needed_by && (
+                    <>
+                      <span>&bull;</span>
+                      <span>NEEDED BY: <strong style={{ color: "var(--ink)" }}>{formatDateShort(currentDemand.needed_by)}</strong></span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

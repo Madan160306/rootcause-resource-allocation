@@ -9,9 +9,9 @@ import {
   LayoutGrid,
   List,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import { formatDateShort } from "../utils/dateHelper";
 
 export default function ActivityTab({
   allocations = [],
@@ -165,9 +165,16 @@ export default function ActivityTab({
               <div key={a.id} className="op-flow-card">
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                    <span className="font-mono" style={{ fontWeight: 800, color: "var(--accent)", fontSize: "12px" }}>
-                      AUDIT #{a.id}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap" }}>
+                      <span className="font-mono" style={{ fontWeight: 800, color: "var(--accent)", fontSize: "12px" }}>
+                        AUDIT #{a.id}
+                      </span>
+                      {a.created_at && (
+                        <span className="font-mono" style={{ fontSize: "11px", color: "var(--muted)", fontWeight: 500 }}>
+                          &bull; {formatDateShort(a.created_at)}
+                        </span>
+                      )}
+                    </div>
                     {renderStatusBadge(a.status)}
                   </div>
 
@@ -253,7 +260,7 @@ export default function ActivityTab({
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Audit ID</th>
+                  <th>Audit ID &amp; Time</th>
                   <th>Requester Incident</th>
                   <th>Dispatched Provider</th>
                   <th>Allocated Units</th>
@@ -267,9 +274,14 @@ export default function ActivityTab({
                 {filteredAllocations.map((a) => (
                   <tr key={a.id}>
                     <td>
-                      <span className="font-mono" style={{ fontWeight: 700, color: "var(--accent)" }}>
+                      <span className="font-mono" style={{ fontWeight: 700, color: "var(--accent)", display: "block" }}>
                         #{a.id}
                       </span>
+                      {a.created_at && (
+                        <span className="font-mono" style={{ fontSize: "11px", color: "var(--muted)", whiteSpace: "nowrap" }}>
+                          {formatDateShort(a.created_at)}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <strong style={{ color: "var(--ink)", fontSize: "0.92rem" }}>{a.requester}</strong>
