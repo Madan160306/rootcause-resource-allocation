@@ -18,7 +18,15 @@ frontend/node_modules/
 
 # Environment & Secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+*.cert
+*.crt
+credentials
+*.credentials
 
 # AWS SAM
 .aws-sam/
