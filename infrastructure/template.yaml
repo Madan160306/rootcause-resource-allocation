@@ -11,6 +11,7 @@ Globals:
     Runtime: python3.12
     Environment:
       Variables:
+        USE_DYNAMODB: "true"
         USE_BEDROCK: "true"
         BEDROCK_MODEL_ID: "amazon.titan-text-express-v1"
         SUPPLIES_TABLE: !Ref SuppliesTable
