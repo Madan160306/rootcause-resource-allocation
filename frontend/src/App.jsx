@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, X } from "lucide-react";
 import Header from "./components/Header";
 import DashboardTab from "./components/DashboardTab";
 import AllocateTab from "./components/AllocateTab";
 import PostDemandTab from "./components/PostDemandTab";
 import PostSupplyTab from "./components/PostSupplyTab";
 import ActivityTab from "./components/ActivityTab";
+import MarqueeTicker from "./components/MarqueeTicker";
 import { api } from "./api";
 
 export default function App() {
@@ -20,9 +21,9 @@ export default function App() {
   const [notification, setNotification] = useState(null);
 
   const showNotification = (msg, type = "success") => {
-    setNotification({ msg, type });
+    setNotification({ msg, type, id: Date.now() });
     setTimeout(() => {
-      setNotification(null);
+      setNotification((curr) => (curr?.msg === msg ? null : curr));
     }, 4000);
   };
 
@@ -57,7 +58,7 @@ export default function App() {
     setLoading(true);
     try {
       const res = await api.seedDemoData();
-      showNotification(res.message || "Emergency disaster scenario loaded!");
+      showNotification(res.message || "Emergency disaster scenario loaded successfully!");
       await refreshAll();
     } catch (err) {
       showNotification(err.message || "Failed to seed demo data", "error");
@@ -92,7 +93,7 @@ export default function App() {
     setLoading(true);
     try {
       await api.createSupply(supplyData);
-      showNotification("Supply asset registered successfully.");
+      showNotification("Supply asset and protected safety reserve registered!");
       await refreshAll();
     } finally {
       setLoading(false);
@@ -103,7 +104,7 @@ export default function App() {
     setLoading(true);
     try {
       await api.createDemand(demandData);
-      showNotification("Emergency demand published successfully.");
+      showNotification("Emergency demand published to triage board!");
       await refreshAll();
     } finally {
       setLoading(false);
@@ -145,7 +146,7 @@ export default function App() {
     setLoading(true);
     try {
       const res = await api.confirmAllocation(id);
-      showNotification("Allocation confirmed! Inventory safely updated.");
+      showNotification("Allocation confirmed! Inventory safely updated & reserved.");
       await refreshAll();
       return res;
     } finally {
@@ -157,7 +158,7 @@ export default function App() {
     setLoading(true);
     try {
       const res = await api.completeAllocation(id);
-      showNotification("Transfer delivered and fulfilled!");
+      showNotification("Transfer completed! Emergency demand fulfilled.");
       await refreshAll();
       return res;
     } finally {
@@ -165,8 +166,47 @@ export default function App() {
     }
   };
 
+  // Custom Editorial Cursor & Motion
+  const [cursorPos, setCursorPos] = useState({ x: -100, y: -100 });
+  const [cursorHovered, setCursorHovered] = useState(false);
+  const [cursorVisible, setCursorVisible] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      setCursorPos({ x: e.clientX, y: e.clientY });
+      if (!cursorVisible) setCursorVisible(true);
+      const target = e.target;
+      const isOverInteractive = Boolean(
+        target &&
+          target.closest(
+            ".ruled-row, .item-card, .stat-column, button, a, .filter-chip, .nav-tab, .breakdown-card, .btn-match-accent"
+          )
+      );
+      setCursorHovered(isOverInteractive);
+    };
+
+    const handleMouseLeave = () => setCursorVisible(false);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [cursorVisible]);
+
   return (
     <div className="app-container">
+      {/* Custom Editorial Cursor (grows over ruled rows & actions) */}
+      <div
+        className={`editorial-cursor ${cursorHovered ? "is-hovered" : ""} ${
+          cursorVisible ? "is-visible" : ""
+        }`}
+        style={{
+          transform: `translate3d(${cursorPos.x}px, ${cursorPos.y}px, 0)`,
+        }}
+      />
+
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -174,32 +214,41 @@ export default function App() {
         onSeed={handleSeed}
         onReset={handleReset}
         loading={loading}
+        demandsCount={demands.length}
+        suppliesCount={supplies.length}
+        allocationsCount={allocations.length}
       />
+
+      {/* Marquee Ticker of Live Critical Demands */}
+      <MarqueeTicker demands={demands} />
 
       {notification && (
         <div
-          style={{
-            position: "fixed",
-            bottom: "1.5rem",
-            right: "1.5rem",
-            zIndex: 1000,
-            background: notification.type === "error" ? "var(--status-critical)" : "var(--status-ok)",
-            color: "var(--bg)",
-            padding: "0.75rem 1.25rem",
-            borderRadius: "var(--radius-btn)",
-            fontWeight: 600,
-            fontSize: "0.9rem",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.5rem",
-          }}
+          className={`floating-toast ${
+            notification.type === "error" ? "toast-error" : "toast-success"
+          }`}
         >
           {notification.type === "error" ? (
-            <AlertCircle size={16} strokeWidth={1.5} />
+            <AlertCircle size={18} strokeWidth={2.2} />
           ) : (
-            <CheckCircle2 size={16} strokeWidth={1.5} />
+            <CheckCircle2 size={18} strokeWidth={2.2} />
           )}
-          <span>{notification.msg}</span>
+          <span style={{ flex: 1 }}>{notification.msg}</span>
+          <button
+            onClick={() => setNotification(null)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "inherit",
+              cursor: "pointer",
+              padding: "0.2rem",
+              display: "flex",
+              opacity: 0.7,
+            }}
+          >
+            <X size={14} />
+          </button>
+          <div className="toast-progress-bar" />
         </div>
       )}
 

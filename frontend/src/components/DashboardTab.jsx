@@ -1,198 +1,473 @@
-import React from "react";
-import { AlertCircle, Package, Zap, Trash2 } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import {
+  AlertCircle,
+  Package,
+  Zap,
+  Trash2,
+  Search,
+  Activity,
+  ArrowRight,
+} from "lucide-react";
+import { getResourceConfig } from "../utils/resourceHelper";
 
 export default function DashboardTab({
   stats,
-  demands,
-  supplies,
+  demands = [],
+  supplies = [],
   onSelectDemandForAllocation,
   onDeleteSupply,
   onDeleteDemand,
 }) {
-  const getUrgencyBadge = (urgency) => {
-    switch (urgency?.toUpperCase()) {
-      case "CRITICAL":
-        return <span className="badge badge-critical">CRITICAL</span>;
-      case "HIGH":
-        return <span className="badge badge-high">HIGH</span>;
-      case "MEDIUM":
-        return <span className="badge badge-medium">MEDIUM</span>;
-      default:
-        return <span className="badge badge-low">LOW</span>;
-    }
-  };
+  const [searchQuery, setSearchQuery] = useState("");
+  const [urgencyFilter, setUrgencyFilter] = useState("ALL");
+  const [selectedTypeFilter, setSelectedTypeFilter] = useState("ALL");
 
-  const getStatusBadge = (status) => {
+  // Filtered Demands
+  const filteredDemands = useMemo(() => {
+    return demands.filter((d) => {
+      const matchSearch =
+        !searchQuery ||
+        d.resource_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.requester?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.location?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchUrgency =
+        urgencyFilter === "ALL" ||
+        d.urgency?.toUpperCase() === urgencyFilter.toUpperCase();
+
+      const matchType =
+        selectedTypeFilter === "ALL" ||
+        d.resource_type?.toLowerCase().includes(selectedTypeFilter.toLowerCase());
+
+      return matchSearch && matchUrgency && matchType;
+    });
+  }, [demands, searchQuery, urgencyFilter, selectedTypeFilter]);
+
+  // Filtered Supplies
+  const filteredSupplies = useMemo(() => {
+    return supplies.filter((s) => {
+      const matchSearch =
+        !searchQuery ||
+        s.resource_type?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.provider?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        s.location?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchType =
+        selectedTypeFilter === "ALL" ||
+        s.resource_type?.toLowerCase().includes(selectedTypeFilter.toLowerCase());
+
+      return matchSearch && matchType;
+    });
+  }, [supplies, searchQuery, selectedTypeFilter]);
+
+  // Urgency Status: small uppercase mono text with a colored dot
+  const getUrgencyBadge = (urgency) => {
+    const u = (urgency || "LOW").toUpperCase();
+    let dotColor = "var(--muted)";
+    if (u === "CRITICAL") dotColor = "var(--accent)";
+    else if (u === "HIGH") dotColor = "#D97706";
+    else if (u === "MEDIUM") dotColor = "#B45309";
+    else if (u === "LOW") dotColor = "var(--muted)";
+
     return (
-      <span className={`badge badge-status-${status || "pending"}`}>
-        {status || "pending"}
+      <span className="status-mono font-mono">
+        <span className="status-dot" style={{ backgroundColor: dotColor }} />
+        {u}
       </span>
     );
   };
 
+  const totalUsableUnits = supplies.reduce((acc, s) => {
+    return acc + Math.max(0, (s.quantity || 0) - (s.reserve_quantity || 0));
+  }, 0);
+
+  const totalDemandedUnits = demands.reduce((acc, d) => {
+    return acc + (d.quantity || 0);
+  }, 0);
+
+  const criticalDemandsCount = demands.filter(
+    (d) => d.urgency?.toUpperCase() === "CRITICAL" && d.status === "pending"
+  ).length;
+
   return (
     <div>
-      {/* KPI Cards Grid */}
-      <div className="kpi-grid">
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <span className="status-dot dot-ok"></span>
-            <span className="kpi-title">Usable Resources</span>
+      {/* Real-time Operations Matrix Banner */}
+      <div className="command-banner">
+        <div className="banner-left">
+          <div className="banner-pulse-icon">
+            <Activity size={20} strokeWidth={2.2} />
           </div>
-          <div className="kpi-value font-mono">
-            {stats?.available_resources ?? supplies?.filter(s => (s.quantity - s.reserve_quantity) > 0).length ?? 0}
+          <div>
+            <div className="banner-title">
+              Operational Incident Telemetry &amp; Dispatch Matrix
+            </div>
+            <div className="banner-desc">
+              Deterministic 100-Point Match Algorithm guarding protected reserve stock &amp; life-critical SLAs
+            </div>
           </div>
-          <div className="kpi-sub">Across {supplies?.length ?? 0} total providers</div>
         </div>
 
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <span className="status-dot dot-critical"></span>
-            <span className="kpi-title">Active Emergency Demands</span>
+        <div className="banner-telemetry">
+          <div className="telemetry-item">
+            <span style={{ color: "var(--status-ok)" }}>●</span>
+            <span>Constraint Filter: <strong>Active (0% Error)</strong></span>
           </div>
-          <div className="kpi-value font-mono">
-            {stats?.active_demands ?? demands?.filter(d => d.status === "pending").length ?? 0}
+          <div className="telemetry-item">
+            <span style={{ color: "var(--accent-gold)" }}>●</span>
+            <span>Bedrock GenAI: <strong>Operational</strong></span>
           </div>
-          <div className="kpi-sub">Requiring immediate allocation</div>
+          <div className="telemetry-item">
+            <span style={{ color: "var(--status-info)" }}>●</span>
+            <span>Geodesic Engine: <strong>Haversine km</strong></span>
+          </div>
+        </div>
+      </div>
+
+      {/* Editorial Stats: Huge Mono Numerals (96px) + Tiny Uppercase Labels separated by hairline rules */}
+      <div className="editorial-stats">
+        {/* Stat 1: Usable Resources */}
+        <div className="stat-column">
+          <div className="stat-numeral font-mono">
+            {stats?.available_resources ??
+              supplies.filter((s) => s.quantity - s.reserve_quantity > 0).length}
+          </div>
+          <div className="stat-meta">
+            <span className="stat-label">Usable Resource Lots</span>
+            <span className="stat-sub font-mono">{totalUsableUnits} units ready</span>
+          </div>
         </div>
 
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <span className="status-dot dot-high"></span>
-            <span className="kpi-title">Pending Matches</span>
+        {/* Stat 2: Active Demands */}
+        <div className="stat-column">
+          <div className="stat-numeral font-mono">
+            {stats?.active_demands ??
+              demands.filter((d) => d.status === "pending").length}
           </div>
-          <div className="kpi-value font-mono">
+          <div className="stat-meta">
+            <span className="stat-label">Active Demands</span>
+            <span className="stat-sub font-mono" style={{ color: criticalDemandsCount > 0 ? "var(--accent)" : "var(--muted)" }}>
+              <span className="status-dot" style={{ backgroundColor: criticalDemandsCount > 0 ? "var(--accent)" : "var(--muted)" }} />
+              {criticalDemandsCount > 0 ? `${criticalDemandsCount} CRITICAL` : "STABLE"} · {totalDemandedUnits} req
+            </span>
+          </div>
+        </div>
+
+        {/* Stat 3: Pending Matches */}
+        <div className="stat-column">
+          <div className="stat-numeral font-mono">
             {stats?.pending_matches ?? 0}
           </div>
-          <div className="kpi-sub">Awaiting confirmation</div>
+          <div className="stat-meta">
+            <span className="stat-label">Draft Recommendations</span>
+            <span className="stat-sub font-mono">Awaiting dispatch</span>
+          </div>
         </div>
 
-        <div className="kpi-card">
-          <div className="kpi-header">
-            <span className="status-dot dot-gold"></span>
-            <span className="kpi-title">Confirmed &amp; Fulfilled</span>
+        {/* Stat 4: Fulfilled / Completed Transfers */}
+        <div className="stat-column">
+          <div className="stat-numeral font-mono">
+            {(stats?.accepted_allocations ?? 0) +
+              (stats?.completed_transfers ?? 0)}
           </div>
-          <div className="kpi-value font-mono">
-            {(stats?.accepted_allocations ?? 0) + (stats?.completed_transfers ?? 0)}
+          <div className="stat-meta">
+            <span className="stat-label">Fulfilled &amp; In-Transit</span>
+            <span className="stat-sub font-mono">{stats?.completed_transfers ?? 0} verified</span>
           </div>
-          <div className="kpi-sub">
-            {stats?.completed_transfers ?? 0} completed transfers
-          </div>
+        </div>
+      </div>
+
+      {/* Filter & Live Search Toolbar */}
+      <div className="filter-toolbar">
+        <div className="search-input-box">
+          <Search size={16} strokeWidth={2} />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Filter by resource type, requester, facility, sector..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="category-filter-chips">
+          <button
+            className={`filter-chip ${urgencyFilter === "ALL" ? "active" : ""}`}
+            onClick={() => setUrgencyFilter("ALL")}
+          >
+            All Urgencies
+          </button>
+          <button
+            className={`filter-chip ${urgencyFilter === "CRITICAL" ? "active" : ""}`}
+            onClick={() => setUrgencyFilter("CRITICAL")}
+            style={{
+              borderColor: urgencyFilter === "CRITICAL" ? "var(--status-critical)" : undefined,
+              color: urgencyFilter === "CRITICAL" ? "var(--status-critical)" : undefined,
+            }}
+          >
+            Critical Only
+          </button>
+          <button
+            className={`filter-chip ${urgencyFilter === "HIGH" ? "active" : ""}`}
+            onClick={() => setUrgencyFilter("HIGH")}
+          >
+            High Priority
+          </button>
+          <div style={{ width: "1px", height: "18px", background: "var(--border)", margin: "0 0.25rem" }} />
+          {["ALL", "Oxygen", "Ambulance", "Generator", "Blood", "Medical"].map((type) => (
+            <button
+              key={type}
+              className={`filter-chip ${selectedTypeFilter === type ? "active" : ""}`}
+              onClick={() => setSelectedTypeFilter(type)}
+            >
+              {type === "ALL" ? "All Resources" : type}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Main Dual Panels */}
       <div className="dashboard-grid">
-        {/* Active Demands Panel */}
+        {/* Panel 1: Active Demands */}
         <div className="section-panel">
           <div className="panel-header">
             <h2 className="panel-title">
-              <AlertCircle size={16} strokeWidth={1.5} />
-              <span>Active Emergency Demands ({demands.length})</span>
+              <AlertCircle size={17} strokeWidth={2} style={{ color: "var(--status-critical)" }} />
+              <span>Emergency Demands Queue</span>
             </h2>
+            <span className="panel-badge font-mono">
+              {filteredDemands.length} / {demands.length}
+            </span>
           </div>
+
           <div className="panel-body">
-            {demands.length === 0 ? (
-              <div style={{ textAlign: "center", color: "var(--muted)", padding: "2rem" }}>
-                No active demands registered. Use "Seed Demo Scenario" or "Post Demand".
+            {filteredDemands.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "3rem 1.5rem", color: "var(--muted)" }}>
+                <AlertCircle
+                  size={36}
+                  strokeWidth={1.5}
+                  style={{ opacity: 0.4, margin: "0 auto 0.75rem auto", display: "block" }}
+                />
+                <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)" }}>
+                  No matching emergency demands
+                </p>
+                <p style={{ fontSize: "0.82rem", marginTop: "0.25rem" }}>
+                  {demands.length === 0
+                    ? "Click 'Seed Demo Scenario' in the header to load real-time triage data."
+                    : "Try adjusting your search criteria."}
+                </p>
               </div>
             ) : (
-              demands.map((d) => (
-                <div key={d.id} className="item-card">
-                  <div className="item-header">
-                    <div>
-                      <div className="item-title">{d.resource_type} ({d.quantity} units)</div>
-                      <div className="item-subtitle">{d.requester} &bull; {d.location}</div>
+              filteredDemands.map((d) => {
+                const config = getResourceConfig(d.resource_type);
+                const isCritical = d.urgency?.toUpperCase() === "CRITICAL";
+
+                return (
+                  <div
+                    key={d.id}
+                    className={`ruled-row ${isCritical ? "is-critical" : ""}`}
+                  >
+                    <div className="row-main">
+                      <div className="row-header">
+                        <div className="row-title-group">
+                          <h3 className="row-title">
+                            {d.resource_type}{" "}
+                            <span className="row-quantity font-mono">
+                              [{d.quantity} {config.unit}]
+                            </span>
+                          </h3>
+                        </div>
+                        <div className="row-header-right">
+                          {getUrgencyBadge(d.urgency)}
+                        </div>
+                      </div>
+
+                      <div className="row-meta font-mono">
+                        <span className="meta-item">{d.requester}</span>
+                        <span className="meta-sep">/</span>
+                        <span className="meta-item">{d.location}</span>
+                        {d.latitude && (
+                          <>
+                            <span className="meta-sep">/</span>
+                            <span className="meta-item">
+                              {d.latitude.toFixed(2)}, {d.longitude?.toFixed(2)}
+                            </span>
+                          </>
+                        )}
+                        {d.needed_by && (
+                          <>
+                            <span className="meta-sep">/</span>
+                            <span className="meta-item">
+                              NEEDED:{" "}
+                              {new Date(d.needed_by).toLocaleDateString([], {
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </>
+                        )}
+                        <span className="meta-sep">/</span>
+                        <span
+                          className="meta-item"
+                          style={{
+                            color:
+                              d.status === "pending"
+                                ? "var(--status-high)"
+                                : "var(--status-ok)",
+                          }}
+                        >
+                          STATUS: {d.status.toUpperCase()}
+                        </span>
+                      </div>
                     </div>
-                    <div>{getUrgencyBadge(d.urgency)}</div>
-                  </div>
 
-                  <div className="item-meta">
-                    <span>Status: {getStatusBadge(d.status)}</span>
-                    {d.needed_by && <span className="timestamp-text">Needed: {new Date(d.needed_by).toLocaleString()}</span>}
-                    {d.latitude && <span className="coord-text">Coords: {d.latitude.toFixed(2)}, {d.longitude?.toFixed(2)}</span>}
-                  </div>
-
-                  <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", justifyContent: "flex-end", alignItems: "center" }}>
-                    {d.status === "pending" && (
+                    <div className="row-actions">
+                      {d.status === "pending" && (
+                        <button
+                          className="btn-match-accent"
+                          onClick={() => onSelectDemandForAllocation(d)}
+                        >
+                          <Zap size={13} strokeWidth={2.5} />
+                          <span>Match Resource</span>
+                          <ArrowRight size={13} strokeWidth={2.5} />
+                        </button>
+                      )}
                       <button
-                        className="btn btn-primary btn-sm"
-                        onClick={() => onSelectDemandForAllocation(d)}
+                        className="btn-row-ghost"
+                        onClick={() => onDeleteDemand(d.id)}
+                        title="Delete demand record"
                       >
-                        <Zap size={16} strokeWidth={1.5} />
-                        <span>Match Resource</span>
+                        <Trash2 size={15} strokeWidth={1.75} />
                       </button>
-                    )}
-                    <button
-                      className="btn btn-ghost btn-sm"
-                      onClick={() => onDeleteDemand(d.id)}
-                      title="Delete demand"
-                    >
-                      <Trash2 size={16} strokeWidth={1.5} />
-                    </button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Available Supplies Inventory */}
+        {/* Panel 2: Available Supplies Inventory */}
         <div className="section-panel">
           <div className="panel-header">
             <h2 className="panel-title">
-              <Package size={16} strokeWidth={1.5} />
-              <span>Available Supply Inventory ({supplies.length})</span>
+              <Package size={17} strokeWidth={2} style={{ color: "var(--status-ok)" }} />
+              <span>Facility Supplies &amp; Protected Reserves</span>
             </h2>
+            <span className="panel-badge font-mono">
+              {filteredSupplies.length} / {supplies.length}
+            </span>
           </div>
+
           <div className="panel-body">
-            {supplies.length === 0 ? (
-              <div style={{ textAlign: "center", color: "var(--muted)", padding: "2rem" }}>
-                No supplies cataloged. Use "Seed Demo Scenario" or "Post Supply".
+            {filteredSupplies.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "3rem 1.5rem", color: "var(--muted)" }}>
+                <Package
+                  size={36}
+                  strokeWidth={1.5}
+                  style={{ opacity: 0.4, margin: "0 auto 0.75rem auto", display: "block" }}
+                />
+                <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "var(--text-primary)" }}>
+                  No available supplies cataloged
+                </p>
+                <p style={{ fontSize: "0.82rem", marginTop: "0.25rem" }}>
+                  {supplies.length === 0
+                    ? "Click 'Seed Demo Scenario' or 'Post Supply' to register inventory."
+                    : "Try adjusting your search filter."}
+                </p>
               </div>
             ) : (
-              supplies.map((s) => {
+              filteredSupplies.map((s) => {
+                const config = getResourceConfig(s.resource_type);
                 const usable = Math.max(0, s.quantity - s.reserve_quantity);
+                const usablePercent = s.quantity > 0 ? (usable / s.quantity) * 100 : 0;
+                const reservePercent = 100 - usablePercent;
+
                 return (
-                  <div key={s.id} className="item-card">
-                    <div className="item-header">
-                      <div>
-                        <div className="item-title">{s.resource_type}</div>
-                        <div className="item-subtitle">{s.provider} &bull; {s.location}</div>
+                  <div key={s.id} className="ruled-row">
+                    <div className="row-main">
+                      <div className="row-header">
+                        <div className="row-title-group">
+                          <h3 className="row-title">
+                            {s.resource_type}{" "}
+                            <span className="row-quantity font-mono">
+                              [{s.quantity} {config.unit}]
+                            </span>
+                          </h3>
+                        </div>
+                        <div className="row-header-right">
+                          <span className="status-mono font-mono">
+                            <span
+                              className="status-dot"
+                              style={{
+                                backgroundColor:
+                                  s.status === "available"
+                                    ? "var(--status-ok)"
+                                    : "var(--muted)",
+                              }}
+                            />
+                            {(s.status || "UNKNOWN").toUpperCase()}
+                          </span>
+                        </div>
                       </div>
-                      <span className={`badge ${s.status === "available" ? "badge-status-fulfilled" : "badge-low"}`}>
-                        {s.status}
-                      </span>
+
+                      <div className="row-meta font-mono">
+                        <span className="meta-item">{s.provider}</span>
+                        <span className="meta-sep">/</span>
+                        <span className="meta-item">{s.location}</span>
+                        <span className="meta-sep">/</span>
+                        <span className="meta-item">
+                          USABLE: <strong style={{ color: "var(--ink)" }}>{usable}</strong>
+                        </span>
+                        <span className="meta-sep">/</span>
+                        <span className="meta-item">
+                          RESERVE: <strong style={{ color: "var(--status-high)", fontWeight: 700 }}>{s.reserve_quantity}</strong>
+                        </span>
+                        {s.provider_reliability && (
+                          <>
+                            <span className="meta-sep">/</span>
+                            <span className="meta-item">
+                              RELIABILITY: {(s.provider_reliability * 100).toFixed(0)}%
+                            </span>
+                          </>
+                        )}
+                        {s.available_until && (
+                          <>
+                            <span className="meta-sep">/</span>
+                            <span className="meta-item">
+                              UNTIL:{" "}
+                              {new Date(s.available_until).toLocaleDateString([], {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Hairline split capacity line */}
+                      <div className="supply-split-line">
+                        <div
+                          className="usable-bar-segment"
+                          style={{ width: `${usablePercent}%` }}
+                          title={`Usable: ${usable} units`}
+                        />
+                        <div
+                          className="reserve-bar-segment"
+                          style={{ width: `${reservePercent}%` }}
+                          title={`Safety Reserve: ${s.reserve_quantity} units`}
+                        />
+                      </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "1rem", margin: "0.5rem 0", fontSize: "0.9rem" }}>
-                      <div>
-                        <strong className="font-mono">{usable}</strong>
-                        <span style={{ color: "var(--muted)", marginLeft: "4px" }}>usable</span>
-                      </div>
-                      <div>
-                        <strong className="font-mono">{s.quantity}</strong>
-                        <span style={{ color: "var(--muted)", marginLeft: "4px" }}>total</span>
-                      </div>
-                      <div>
-                        <strong className="font-mono">{s.reserve_quantity}</strong>
-                        <span style={{ color: "var(--muted)", marginLeft: "4px" }}>safety reserve</span>
-                      </div>
-                    </div>
-
-                    <div className="item-meta">
-                      {s.latitude && <span className="coord-text">Coords: {s.latitude.toFixed(2)}, {s.longitude?.toFixed(2)}</span>}
-                      {s.available_until && <span className="timestamp-text">Available until: {new Date(s.available_until).toLocaleDateString()}</span>}
-                      {s.provider_reliability && <span className="font-mono">Reliability: {(s.provider_reliability * 100).toFixed(0)}%</span>}
-                    </div>
-
-                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem", justifyContent: "flex-end", alignItems: "center" }}>
+                    <div className="row-actions">
                       <button
-                        className="btn btn-ghost btn-sm"
+                        className="btn-row-ghost"
                         onClick={() => onDeleteSupply(s.id)}
-                        title="Delete supply"
+                        title="Delete supply record"
                       >
-                        <Trash2 size={16} strokeWidth={1.5} />
+                        <Trash2 size={15} strokeWidth={1.75} />
                       </button>
                     </div>
                   </div>

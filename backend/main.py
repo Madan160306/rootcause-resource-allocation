@@ -23,6 +23,7 @@ from repositories import (
     LocalSupplyRepository,
     LocalDemandRepository,
     LocalAllocationRepository,
+    get_repositories,
 )
 from services import AllocationService, get_explanation_service
 
@@ -42,9 +43,7 @@ app.add_middleware(
 )
 
 # Repository & service singletons
-supply_repo = LocalSupplyRepository()
-demand_repo = LocalDemandRepository()
-allocation_repo = LocalAllocationRepository()
+supply_repo, demand_repo, allocation_repo = get_repositories()
 explanation_service = get_explanation_service()
 allocation_service = AllocationService(
     supply_repo=supply_repo,
@@ -70,7 +69,9 @@ def health():
         "status": "healthy",
         "engine": "active",
         "explanation_mode": "bedrock" if os.environ.get("USE_BEDROCK") else "local",
+        "storage_mode": "dynamodb" if os.environ.get("USE_DYNAMODB", "").lower() in ("true", "1", "yes") else "local",
     }
+
 
 
 # ==========================================

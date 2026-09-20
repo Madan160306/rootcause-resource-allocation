@@ -1,37 +1,114 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Syne:wght@400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@300..700&display=swap');
 
 :root {
-  /* Colors */
-  --bg: #0A0A0C;
-  --surface: #131316;
-  --raised: #1A1A1F;
-  --border: rgba(255, 255, 255, 0.06);
+  /* Readymag-inspired Editorial Tokens */
+  --paper: #F1EEE7;
+  --ink: #111111;
+  --muted: #3D3A35; /* Crisp dark charcoal for high readability on paper */
+  --hairline: rgba(17, 17, 17, 0.18);
+  --accent: #FF4B2B; /* Vermilion */
+  --accent-vermilion: #FF4B2B;
 
-  /* ONE Accent: Gold (primary buttons, active tab only) */
-  --accent-gold: #C9A961;
-  --accent-gold-hover: #b8974f;
+  /* Canvas & Foundations (Readymag Paper Palette) */
+  --bg: #F1EEE7;
+  --bg-secondary: #E9E5DC;
+  --surface: #F1EEE7;
+  --surface-hover: #E7E3D8;
+  --raised: #E9E5DC;
+  --raised-hover: #DFDAD0;
+  --card-bg: #F1EEE7;
+  --card-bg-solid: #F1EEE7;
 
-  /* Typography */
-  --text: #EDEAE3;
-  --muted: #8A8780;
+  /* Eliminated Glassmorphism / Gradients */
+  --glass-surface: #F1EEE7;
+  --glass-surface-hover: #E7E3D8;
+  --glass-raised: #E9E5DC;
+  --glass-border: rgba(17, 17, 17, 0.18);
+  --glass-border-hover: rgba(17, 17, 17, 0.4);
+  --glass-blur: none;
+  --glass-blur-sm: none;
 
-  /* Status Colors ONLY on badges: 12% tint bg + matching text */
-  --status-critical: #E5484D;
-  --status-critical-bg: rgba(229, 72, 77, 0.12);
+  /* ONE Accent: Vermilion #FF4B2B */
+  --accent-gold: #FF4B2B;
+  --accent-gold-light: #B91C1C; /* High-contrast vermilion for text */
+  --accent-gold-hover: #E03E20;
+  --accent-gold-dim: rgba(255, 75, 43, 0.12);
+  --accent-gold-glow: none;
 
-  --status-high: #F5A524;
-  --status-high-bg: rgba(245, 165, 36, 0.12);
+  /* Editorial Flat Colors - No Gradients */
+  --gradient-gold: #FF4B2B;
+  --gradient-gold-hover: #E03E20;
+  --gradient-gold-soft: rgba(255, 75, 43, 0.08);
+  --gradient-surface: none;
+  --gradient-card: none;
+  --gradient-card-highlight: none;
+  --gradient-glow-orb: none;
 
-  --status-ok: #3DD68C;
-  --status-ok-bg: rgba(61, 214, 140, 0.12);
+  /* Hairlines & Rules */
+  --border: rgba(17, 17, 17, 0.18);
+  --border-light: rgba(17, 17, 17, 0.12);
+  --border-subtle: rgba(17, 17, 17, 0.08);
+  --border-gold: rgba(17, 17, 17, 0.18);
 
-  /* Fonts */
-  --font-heading: 'Syne', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  /* High-Contrast Editorial Typography Colors (WCAG AAA Compliant on #F1EEE7) */
+  --text: #111111;
+  --text-primary: #111111;
+  --text-secondary: #2D2B28; /* High-contrast primary sub-text */
+  --muted-dim: #504D47;     /* Clear secondary labels */
+
+  /* Status Colors (Accessible, saturated tones) */
+  --status-critical: #FF4B2B;
+  --status-critical-glow: none;
+  --status-critical-bg: rgba(255, 75, 43, 0.1);
+  --status-critical-border: rgba(255, 75, 43, 0.35);
+
+  --status-high: #B45309;
+  --status-high-glow: none;
+  --status-high-bg: rgba(180, 83, 9, 0.1);
+  --status-high-border: rgba(180, 83, 9, 0.35);
+
+  --status-ok: #15803D;
+  --status-ok-glow: none;
+  --status-ok-bg: rgba(21, 128, 61, 0.1);
+  --status-ok-border: rgba(21, 128, 61, 0.35);
+
+  --status-info: #1D4ED8;
+  --status-info-glow: none;
+  --status-info-bg: rgba(29, 78, 216, 0.1);
+  --status-info-border: rgba(29, 78, 216, 0.35);
+
+  /* Typography Fonts: Instrument Serif (display), Space Grotesk (body), JetBrains Mono (numbers, coords, dates) */
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-heading: 'Instrument Serif', Georgia, serif;
+  --font-body: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Radius (cards 10px, buttons 6px, NO gradients) */
-  --radius-card: 10px;
-  --radius-btn: 6px;
-  --radius-badge: 4px;
+  /* Geometry: No rounded cards (radius 0-2px) */
+  --radius-sm: 0px;
+  --radius-btn: 0px;
+  --radius-card: 0px;
+  --radius-badge: 0px;
+  --radius-full: 0px;
+
+  /* Shadows: No shadows */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-gold: none;
+  --shadow-gold-lg: none;
+  --shadow-critical: none;
+
+  /* Editorial Transitions */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* Eliminate all background gradients and ambient glows */
+body::before,
+body::after {
+  display: none !important;
 }

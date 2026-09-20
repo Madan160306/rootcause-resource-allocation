@@ -1,18 +1,27 @@
 import React, { useState } from "react";
-import { AlertCircle, AlertTriangle, CheckCircle2, MapPin } from "lucide-react";
+import {
+  AlertCircle,
+  AlertTriangle,
+  CheckCircle2,
+  MapPin,
+  ArrowRight,
+  Eye,
+} from "lucide-react";
+import { RESOURCE_TYPES, getResourceConfig } from "../utils/resourceHelper";
 
 const PRESET_LOCATIONS = [
-  { name: "Manhattan West", lat: 40.7200, lon: -74.0100 },
-  { name: "Times Square Corridor", lat: 40.7580, lon: -73.9855 },
-  { name: "Flushing Outpost (Queens)", lat: 40.7675, lon: -73.8331 },
-  { name: "Brooklyn Medical Center", lat: 40.6782, lon: -73.9442 },
+  { name: "Manhattan West Sector", lat: 40.7200, lon: -74.0100 },
+  { name: "Times Square Medical Hub", lat: 40.7580, lon: -73.9855 },
+  { name: "Flushing Triage Outpost", lat: 40.7675, lon: -73.8331 },
+  { name: "Brooklyn Trauma Center", lat: 40.6782, lon: -73.9442 },
+  { name: "Bronx Logistics Depot", lat: 40.8448, lon: -73.8648 },
 ];
 
 export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading }) {
   const [resourceType, setResourceType] = useState("Oxygen Cylinder");
   const [quantity, setQuantity] = useState(15);
-  const [requester, setRequester] = useState("St. Luke Community Triage");
-  const [location, setLocation] = useState("Manhattan West");
+  const [requester, setRequester] = useState("St. Luke Emergency Triage");
+  const [location, setLocation] = useState("Manhattan West Sector");
   const [latitude, setLatitude] = useState(40.7200);
   const [longitude, setLongitude] = useState(-74.0100);
   const [urgency, setUrgency] = useState("CRITICAL");
@@ -20,13 +29,16 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const selectedConfig = getResourceConfig(resourceType);
+  const ResourceIcon = selectedConfig.Icon;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
     if (!requester.trim() || !location.trim()) {
-      setErrorMsg("Requester and Location are mandatory fields.");
+      setErrorMsg("Requester facility and Location are mandatory fields.");
       return;
     }
     if (quantity <= 0) {
@@ -47,35 +59,98 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
         status: "pending",
       });
 
-      setSuccessMsg("Emergency demand posted successfully!");
+      setSuccessMsg("Emergency demand posted to dispatch matrix!");
       setTimeout(() => {
         onSuccessRedirect();
-      }, 1200);
+      }, 1000);
     } catch (err) {
-      setErrorMsg(err.message || "Failed to submit demand request");
+      setErrorMsg(err.message || "Failed to submit emergency demand");
     }
   };
 
   return (
     <div className="form-card">
-      <h2 className="form-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <AlertCircle size={16} strokeWidth={1.5} />
-        <span>Post Emergency Resource Demand</span>
-      </h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.4rem" }}>
+        <div className="brand-icon-box" style={{ width: "36px", height: "36px", color: "var(--status-critical)", borderColor: "rgba(255, 71, 87, 0.4)" }}>
+          <AlertCircle size={18} strokeWidth={2.2} />
+        </div>
+        <h2 className="form-title" style={{ margin: 0 }}>
+          Post Emergency Resource Demand
+        </h2>
+      </div>
       <p className="form-desc">
-        Submit emergency supply requests for rapid, explainable matching by the RootCause Engine.
+        Publish urgent hospital or field-unit resource requisitions for explainable AI-assisted matching.
       </p>
 
+      {/* Live Dispatch Preview Card */}
+      <div
+        style={{
+          background: "var(--surface-hover)",
+          border: "1px solid var(--border)",
+          borderRadius: "0px",
+          padding: "1rem",
+          marginBottom: "1.75rem",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.74rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-secondary)", marginBottom: "0.65rem", fontWeight: 700 }}>
+          <Eye size={13} strokeWidth={2} />
+          <span>Real-Time Incident Board Preview</span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <div
+              className="resource-icon-badge"
+              style={{
+                background: selectedConfig.bgColor,
+                border: `1px solid ${selectedConfig.borderColor}`,
+                color: selectedConfig.color,
+              }}
+            >
+              <ResourceIcon size={18} strokeWidth={2} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 700, color: "var(--ink)", fontSize: "0.95rem" }}>
+                {resourceType} &bull;{" "}
+                <span className="font-mono" style={{ color: "var(--accent)" }}>
+                  {quantity || 0} {selectedConfig.unit}
+                </span>
+              </div>
+              <div style={{ color: "var(--muted)", fontSize: "0.8rem", display: "flex", gap: "0.4rem" }}>
+                <span>{requester || "Field Facility"}</span>
+                <span>&bull;</span>
+                <span>{location || "Sector"}</span>
+              </div>
+            </div>
+          </div>
+
+          <span className="status-mono font-mono">
+            <span
+              className="status-dot"
+              style={{
+                backgroundColor:
+                  urgency === "CRITICAL"
+                    ? "var(--accent)"
+                    : urgency === "HIGH"
+                    ? "#D97706"
+                    : "var(--muted)",
+              }}
+            />
+            {urgency.toUpperCase()}
+          </span>
+        </div>
+      </div>
+
       {errorMsg && (
-        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <AlertTriangle size={16} strokeWidth={1.5} />
+        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", border: "1px solid var(--status-critical-border)", padding: "0.8rem 1rem", borderRadius: "var(--radius-btn)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem" }}>
+          <AlertTriangle size={16} strokeWidth={2} />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {successMsg && (
-        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <CheckCircle2 size={16} strokeWidth={1.5} />
+        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", border: "1px solid var(--status-ok-border)", padding: "0.8rem 1rem", borderRadius: "var(--radius-btn)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem" }}>
+          <CheckCircle2 size={16} strokeWidth={2} />
           <span>{successMsg}</span>
         </div>
       )}
@@ -89,19 +164,14 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
               value={resourceType}
               onChange={(e) => setResourceType(e.target.value)}
             >
-              <option value="Oxygen Cylinder">Oxygen Cylinder</option>
-              <option value="Ambulance">Ambulance</option>
-              <option value="Generator">Generator</option>
-              <option value="Blood Unit">Blood Unit</option>
-              <option value="Medical Kit">Medical Kit</option>
-              <option value="Water Tanker">Water Tanker</option>
-              <option value="Food Packet">Food Packet</option>
-              <option value="Shelter Kit">Shelter Kit</option>
+              {RESOURCE_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label>Units Needed</label>
+            <label>Quantity Units Needed</label>
             <input
               type="number"
               className="form-control font-mono"
@@ -127,7 +197,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Urgency Level</label>
+            <label>Triage Urgency Rating</label>
             <select
               className="form-control"
               value={urgency}
@@ -142,7 +212,7 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
         </div>
 
         <div className="form-group">
-          <label>Location Name</label>
+          <label>Location / Sector Name</label>
           <input
             type="text"
             className="form-control"
@@ -152,34 +222,8 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
           />
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Latitude</label>
-            <input
-              type="number"
-              step="any"
-              className="form-control font-mono"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Longitude</label>
-            <input
-              type="number"
-              step="any"
-              className="form-control font-mono"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
         <div className="form-group">
-          <label>Location Presets (Quick Fill):</label>
+          <label style={{ fontSize: "0.74rem" }}>Location Presets (Fast Dispatch Fill):</label>
           <div className="presets-row">
             {PRESET_LOCATIONS.map((preset) => (
               <button
@@ -192,15 +236,41 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
                   setLongitude(preset.lon);
                 }}
               >
-                <MapPin size={16} strokeWidth={1.5} style={{ verticalAlign: "middle", marginRight: "3px" }} />
+                <MapPin size={13} strokeWidth={2} style={{ color: "var(--accent-gold)" }} />
                 <span>{preset.name}</span>
               </button>
             ))}
           </div>
         </div>
 
+        <div className="form-row">
+          <div className="form-group">
+            <label>Latitude (Geodesic)</label>
+            <input
+              type="number"
+              step="any"
+              className="form-control font-mono"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Longitude (Geodesic)</label>
+            <input
+              type="number"
+              step="any"
+              className="form-control font-mono"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
         <div className="form-group">
-          <label>Needed By (ISO Timestamp)</label>
+          <label>Delivery Deadline (ISO 8601 UTC)</label>
           <input
             type="text"
             className="form-control font-mono"
@@ -212,11 +282,13 @@ export default function PostDemandTab({ onPostDemand, onSuccessRedirect, loading
 
         <button
           type="submit"
-          className="btn btn-secondary"
-          style={{ width: "100%", padding: "0.75rem", marginTop: "1rem" }}
+          className="btn btn-primary btn-lg"
+          style={{ width: "100%", marginTop: "1rem" }}
           disabled={loading}
         >
-          {loading ? "Submitting..." : "Submit Emergency Demand"}
+          <AlertCircle size={18} strokeWidth={2.2} />
+          <span>{loading ? "Publishing Demand..." : "Submit Emergency Demand"}</span>
+          <ArrowRight size={16} strokeWidth={2.2} />
         </button>
       </form>
     </div>

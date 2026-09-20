@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
   Zap,
@@ -7,6 +7,7 @@ import {
   ClipboardList,
   Clock,
   RotateCcw,
+  Sparkles,
 } from "lucide-react";
 
 export default function Header({
@@ -16,15 +17,23 @@ export default function Header({
   onSeed,
   onReset,
   loading,
+  demandsCount = 0,
+  suppliesCount = 0,
+  allocationsCount = 0,
 }) {
-  const [currentTime, setCurrentTime] = useState(new Date().toUTCString());
-  const navRef = React.useRef(null);
+  const [currentTime, setCurrentTime] = useState("");
+  const navRef = useRef(null);
   const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date().toUTCString());
-    }, 1000);
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toUTCString().replace("GMT", "UTC")
+      );
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -40,47 +49,68 @@ export default function Header({
       }
     };
     updateIndicator();
-    // Re-check after layout calculation
-    const timeout = setTimeout(updateIndicator, 50);
+    const timeout = setTimeout(updateIndicator, 60);
     window.addEventListener("resize", updateIndicator);
     return () => {
       clearTimeout(timeout);
       window.removeEventListener("resize", updateIndicator);
     };
-  }, [activeTab]);
+  }, [activeTab, demandsCount, suppliesCount, allocationsCount]);
 
   const tabs = [
-    { id: "dashboard", label: "Operations Dashboard", Icon: LayoutDashboard },
-    { id: "allocate", label: "Allocation Engine", Icon: Zap },
-    { id: "post-demand", label: "Post Demand", Icon: AlertCircle },
-    { id: "post-supply", label: "Post Supply", Icon: Package },
-    { id: "activity", label: "Transfers & Activity", Icon: ClipboardList },
+    {
+      id: "dashboard",
+      label: "Operations Dashboard",
+      Icon: LayoutDashboard,
+      count: demandsCount + suppliesCount,
+    },
+    {
+      id: "allocate",
+      label: "Allocation Engine",
+      Icon: Zap,
+      highlight: true,
+    },
+    {
+      id: "post-demand",
+      label: "Post Demand",
+      Icon: AlertCircle,
+      count: demandsCount,
+    },
+    {
+      id: "post-supply",
+      label: "Post Supply",
+      Icon: Package,
+      count: suppliesCount,
+    },
+    {
+      id: "activity",
+      label: "Transfers & Activity",
+      Icon: ClipboardList,
+      count: allocationsCount,
+    },
   ];
 
   const isOnline = health && health.status === "healthy";
 
   return (
     <header className="app-header">
-      <div className="header-top">
-        <div className="brand-area">
-          <span className="brand-badge">AWS First Commit 2026</span>
-          <div>
-            <h1 className="brand-title">RootCause</h1>
-            <p className="brand-subtitle">
-              Explainable Real-Time Resource Allocation Engine
-            </p>
-          </div>
+      <div className="header-utility">
+        <div className="utility-left">
+          <span className="brand-badge font-mono">AWS FIRST COMMIT 2026</span>
         </div>
 
         <div className="header-actions">
-          <div className="live-clock" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-            <Clock size={16} strokeWidth={1.5} />
-            <span>{currentTime}</span>
+          <div className="live-clock font-mono">
+            <Clock size={12} strokeWidth={1.5} style={{ color: "var(--accent)" }} />
+            <span>{currentTime || "SYNCHRONIZING..."}</span>
           </div>
 
-          <div className={`connection-pill ${isOnline ? "online" : "offline"}`}>
-            <span className="pulse-dot"></span>
-            <span>{isOnline ? "Engine Online" : "Connecting..."}</span>
+          <div className="connection-pill font-mono">
+            <span
+              className="status-dot"
+              style={{ backgroundColor: isOnline ? "var(--status-ok)" : "var(--status-critical)" }}
+            />
+            <span>{isOnline ? "ENGINE ONLINE" : "CONNECTING..."}</span>
           </div>
 
           <button
@@ -89,8 +119,8 @@ export default function Header({
             disabled={loading}
             title="Load realistic New York disaster emergency scenario supplies and demands"
           >
-            <Zap size={16} strokeWidth={1.5} />
-            <span>{loading ? "Seeding..." : "Seed Demo Scenario"}</span>
+            <Sparkles size={12} strokeWidth={2} style={{ color: "var(--accent)" }} />
+            <span>{loading ? "SEEDING..." : "SEED SCENARIO"}</span>
           </button>
 
           <button
@@ -99,34 +129,47 @@ export default function Header({
             disabled={loading}
             title="Clear all records"
           >
-            <RotateCcw size={16} strokeWidth={1.5} />
-            <span>Reset</span>
+            <RotateCcw size={12} strokeWidth={1.5} />
+            <span>RESET</span>
           </button>
         </div>
       </div>
 
-      <nav className="nav-tabs" ref={navRef}>
-        {tabs.map((tab) => {
-          const TabIcon = tab.Icon;
-          return (
-            <button
-              key={tab.id}
-              className={`nav-tab ${activeTab === tab.id ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <TabIcon size={16} strokeWidth={1.5} />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
-        <span
-          className="nav-tab-indicator"
-          style={{
-            left: `${indicatorStyle.left}px`,
-            width: `${indicatorStyle.width}px`,
-          }}
-        />
-      </nav>
+      <div className="header-hero-grid">
+        <h1 className="brand-title">RootCause</h1>
+        <div className="header-tagline-col">
+          <p className="brand-subtitle">
+            Explainable Emergency Resource Allocation &amp; Decision Support Engine
+          </p>
+        </div>
+      </div>
+
+      <div className="nav-tabs-wrapper">
+        <nav className="nav-tabs" ref={navRef}>
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                className={`nav-tab ${isActive ? "active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                <span>{tab.label}</span>
+                {typeof tab.count === "number" && tab.count > 0 && (
+                  <span className="tab-count-pill font-mono">[{tab.count}]</span>
+                )}
+              </button>
+            );
+          })}
+          <span
+            className="nav-tab-indicator"
+            style={{
+              left: `${indicatorStyle.left}px`,
+              width: `${indicatorStyle.width}px`,
+            }}
+          />
+        </nav>
+      </div>
     </header>
   );
 }

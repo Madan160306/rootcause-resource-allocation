@@ -1,12 +1,21 @@
 import React, { useState } from "react";
-import { Package, AlertTriangle, CheckCircle2, Building2 } from "lucide-react";
+import {
+  Package,
+  AlertTriangle,
+  CheckCircle2,
+  Building2,
+  ShieldCheck,
+  ArrowRight,
+  ShieldAlert,
+} from "lucide-react";
+import { RESOURCE_TYPES, getResourceConfig } from "../utils/resourceHelper";
 
 const PRESET_SUPPLY_LOCATIONS = [
-  { name: "Downtown Center", lat: 40.7128, lon: -74.0060 },
-  { name: "Eastside Medical Hub", lat: 40.7306, lon: -73.9352 },
-  { name: "Queens Logistics Park", lat: 40.7282, lon: -73.7949 },
-  { name: "Midtown Dispatch Center", lat: 40.7589, lon: -73.9851 },
-  { name: "North Bronx Depot", lat: 40.8448, lon: -73.8648 },
+  { name: "Downtown Central Medical Center", lat: 40.7128, lon: -74.0060 },
+  { name: "Eastside Regional Medical Hub", lat: 40.7306, lon: -73.9352 },
+  { name: "Queens Emergency Logistics Base", lat: 40.7282, lon: -73.7949 },
+  { name: "Midtown Dispatch Depo", lat: 40.7589, lon: -73.9851 },
+  { name: "North Bronx Auxiliary Depot", lat: 40.8448, lon: -73.8648 },
 ];
 
 export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading }) {
@@ -14,7 +23,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
   const [quantity, setQuantity] = useState(40);
   const [reserveQuantity, setReserveQuantity] = useState(8);
   const [provider, setProvider] = useState("Central Regional Hospital");
-  const [location, setLocation] = useState("Downtown Center");
+  const [location, setLocation] = useState("Downtown Central Medical Center");
   const [latitude, setLatitude] = useState(40.7128);
   const [longitude, setLongitude] = useState(-74.0060);
   const [availableUntil, setAvailableUntil] = useState("2026-09-25T23:59:59Z");
@@ -22,28 +31,34 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const totalQty = parseInt(quantity || 0, 10);
+  const reserveQty = parseInt(reserveQuantity || 0, 10);
+  const usable = Math.max(0, totalQty - reserveQty);
+  const usablePercent = totalQty > 0 ? (usable / totalQty) * 100 : 0;
+  const reservePercent = 100 - usablePercent;
+
+  const selectedConfig = getResourceConfig(resourceType);
+  const ResourceIcon = selectedConfig.Icon;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
-    const totalQty = parseInt(quantity, 10);
-    const reserveQty = parseInt(reserveQuantity, 10);
-
     if (totalQty <= 0) {
-      setErrorMsg("Total quantity must be greater than zero.");
+      setErrorMsg("Total inventory quantity must be greater than zero.");
       return;
     }
     if (reserveQty < 0) {
-      setErrorMsg("Reserve quantity cannot be negative.");
+      setErrorMsg("Safety reserve quantity cannot be negative.");
       return;
     }
     if (reserveQty > totalQty) {
-      setErrorMsg("Safety reserve quantity cannot exceed total quantity.");
+      setErrorMsg("Safety reserve quantity cannot exceed total physical stock.");
       return;
     }
     if (!provider.trim() || !location.trim()) {
-      setErrorMsg("Provider and Location are required.");
+      setErrorMsg("Provider facility and Location are mandatory fields.");
       return;
     }
 
@@ -62,37 +77,103 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
         provider_reliability: parseFloat(reliability),
       });
 
-      setSuccessMsg("Supply inventory registered successfully!");
+      setSuccessMsg("Supply inventory and guarded reserve registered!");
       setTimeout(() => {
         onSuccessRedirect();
-      }, 1200);
+      }, 1000);
     } catch (err) {
-      setErrorMsg(err.message || "Failed to register supply");
+      setErrorMsg(err.message || "Failed to register supply inventory");
     }
   };
 
-  const usable = Math.max(0, quantity - reserveQuantity);
-
   return (
     <div className="form-card">
-      <h2 className="form-title" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        <Package size={16} strokeWidth={1.5} />
-        <span>Register Supply Inventory &amp; Reserve</span>
-      </h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.4rem" }}>
+        <div className="brand-icon-box" style={{ width: "36px", height: "36px", color: selectedConfig.color, background: selectedConfig.bgColor, borderColor: selectedConfig.borderColor }}>
+          <ResourceIcon size={18} strokeWidth={2.2} />
+        </div>
+        <h2 className="form-title" style={{ margin: 0 }}>
+          Register Supply Inventory &amp; Reserve Guard
+        </h2>
+      </div>
       <p className="form-desc">
-        Publish available emergency assets. Safety reserves are strictly guarded by RootCause to prevent facility exhaustion.
+        Publish emergency assets into the dispatch pool. Safety reserves are strictly guarded by RootCause to prevent local facility collapse.
       </p>
 
+      {/* Dynamic Capacity Split Bar Callout */}
+      <div
+        style={{
+          background: "var(--surface-hover)",
+          border: "1px solid var(--border)",
+          borderRadius: "0px",
+          padding: "1.15rem",
+          marginBottom: "1.75rem",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ShieldCheck size={16} style={{ color: "var(--status-ok)" }} />
+            <span style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--ink)" }}>
+              Automated Safety Reserve Calculator
+            </span>
+          </div>
+          <span className="font-mono" style={{ fontSize: "0.76rem", color: "var(--text-secondary)" }}>
+            GUARD CONSTRAINT: Usable = Total - Reserve &gt; 0
+          </span>
+        </div>
+
+        <div className="split-bar-track" style={{ height: "10px", margin: "0.65rem 0" }}>
+          <div
+            className="usable-bar-segment"
+            style={{ width: `${usablePercent}%` }}
+            title={`Net Usable for Dispatch: ${usable} units (${usablePercent.toFixed(0)}%)`}
+          />
+          <div
+            className="reserve-bar-segment"
+            style={{ width: `${reservePercent}%` }}
+            title={`Guarded Facility Reserve: ${reserveQty} units (${reservePercent.toFixed(0)}%)`}
+          />
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", marginTop: "0.5rem" }}>
+          <div>
+            <span style={{ color: "var(--text-secondary)" }}>Net Usable: </span>
+            <strong className="font-mono" style={{ color: "var(--status-ok)", fontSize: "0.95rem" }}>
+              {usable} units
+            </strong>
+          </div>
+          <div>
+            <span style={{ color: "var(--text-secondary)" }}>Protected Reserve: </span>
+            <strong className="font-mono" style={{ color: "var(--status-high)", fontSize: "0.95rem" }}>
+              {reserveQty} units
+            </strong>
+          </div>
+          <div>
+            <span style={{ color: "var(--text-secondary)" }}>Total Capacity: </span>
+            <strong className="font-mono" style={{ color: "var(--ink)", fontSize: "0.95rem" }}>
+              {totalQty} units
+            </strong>
+          </div>
+        </div>
+
+        {reserveQty >= totalQty && (
+          <div style={{ color: "var(--status-critical)", fontSize: "0.78rem", marginTop: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <ShieldAlert size={14} />
+            <span>Warning: Safety reserve exhausts 100% of inventory. 0 units will be eligible for dispatch!</span>
+          </div>
+        )}
+      </div>
+
       {errorMsg && (
-        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <AlertTriangle size={16} strokeWidth={1.5} />
+        <div style={{ color: "var(--status-critical)", background: "var(--status-critical-bg)", border: "1px solid var(--status-critical-border)", padding: "0.8rem 1rem", borderRadius: "var(--radius-btn)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem" }}>
+          <AlertTriangle size={16} strokeWidth={2} />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {successMsg && (
-        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", padding: "0.75rem", borderRadius: "var(--radius-btn)", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <CheckCircle2 size={16} strokeWidth={1.5} />
+        <div style={{ color: "var(--status-ok)", background: "var(--status-ok-bg)", border: "1px solid var(--status-ok-border)", padding: "0.8rem 1rem", borderRadius: "var(--radius-btn)", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.6rem", fontSize: "0.88rem" }}>
+          <CheckCircle2 size={16} strokeWidth={2} />
           <span>{successMsg}</span>
         </div>
       )}
@@ -100,31 +181,26 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
       <form onSubmit={handleSubmit}>
         <div className="form-row">
           <div className="form-group">
-            <label>Resource Type</label>
+            <label>Resource Category</label>
             <select
               className="form-control"
               value={resourceType}
               onChange={(e) => setResourceType(e.target.value)}
             >
-              <option value="Oxygen Cylinder">Oxygen Cylinder</option>
-              <option value="Ambulance">Ambulance</option>
-              <option value="Generator">Generator</option>
-              <option value="Blood Unit">Blood Unit</option>
-              <option value="Medical Kit">Medical Kit</option>
-              <option value="Water Tanker">Water Tanker</option>
-              <option value="Food Packet">Food Packet</option>
-              <option value="Shelter Kit">Shelter Kit</option>
+              {RESOURCE_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label>Provider Name</label>
+            <label>Provider Facility Name</label>
             <input
               type="text"
               className="form-control"
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
-              placeholder="e.g. Metro Logistics Dep"
+              placeholder="e.g. Bellevue Hospital Center"
               required
             />
           </div>
@@ -132,7 +208,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <div className="form-row">
           <div className="form-group">
-            <label>Total Inventory Units</label>
+            <label>Total Physical Stock Units</label>
             <input
               type="number"
               className="form-control font-mono"
@@ -144,7 +220,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Mandatory Safety Reserve (Protected)</label>
+            <label>Mandatory Protected Reserve</label>
             <input
               type="number"
               className="form-control font-mono"
@@ -154,31 +230,6 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
               required
             />
           </div>
-        </div>
-
-        {/* Dynamic Capacity Callout */}
-        <div
-          style={{
-            background: "var(--raised)",
-            border: "1px solid var(--border)",
-            borderRadius: "var(--radius-btn)",
-            padding: "0.75rem",
-            marginBottom: "1.25rem",
-            display: "flex",
-            justifyContent: "space-between",
-            fontSize: "0.85rem",
-          }}
-        >
-          <span>
-            Total: <strong className="font-mono">{quantity}</strong>
-          </span>
-          <span>
-            Safety Reserve: <strong className="font-mono">{reserveQuantity}</strong>
-          </span>
-          <span>
-            Net Usable for Allocation:{" "}
-            <strong className="font-mono">{usable} units</strong>
-          </span>
         </div>
 
         <div className="form-group">
@@ -192,34 +243,8 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           />
         </div>
 
-        <div className="form-row">
-          <div className="form-group">
-            <label>Latitude</label>
-            <input
-              type="number"
-              step="any"
-              className="form-control font-mono"
-              value={latitude}
-              onChange={(e) => setLatitude(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Longitude</label>
-            <input
-              type="number"
-              step="any"
-              className="form-control font-mono"
-              value={longitude}
-              onChange={(e) => setLongitude(e.target.value)}
-              required
-            />
-          </div>
-        </div>
-
         <div className="form-group">
-          <label>Location Presets (Quick Fill):</label>
+          <label style={{ fontSize: "0.74rem" }}>Location Presets (Fast Dispatch Fill):</label>
           <div className="presets-row">
             {PRESET_SUPPLY_LOCATIONS.map((preset) => (
               <button
@@ -232,7 +257,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
                   setLongitude(preset.lon);
                 }}
               >
-                <Building2 size={16} strokeWidth={1.5} style={{ verticalAlign: "middle", marginRight: "3px" }} />
+                <Building2 size={13} strokeWidth={2} style={{ color: "var(--accent-gold)" }} />
                 <span>{preset.name}</span>
               </button>
             ))}
@@ -241,7 +266,33 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <div className="form-row">
           <div className="form-group">
-            <label>Available Until</label>
+            <label>Latitude (Geodesic)</label>
+            <input
+              type="number"
+              step="any"
+              className="form-control font-mono"
+              value={latitude}
+              onChange={(e) => setLatitude(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Longitude (Geodesic)</label>
+            <input
+              type="number"
+              step="any"
+              className="form-control font-mono"
+              value={longitude}
+              onChange={(e) => setLongitude(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label>Available Until (ISO 8601 UTC)</label>
             <input
               type="text"
               className="form-control font-mono"
@@ -251,7 +302,7 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
           </div>
 
           <div className="form-group">
-            <label>Historical Reliability (0.0 - 1.0)</label>
+            <label>Provider Reliability Index (0.50 - 1.00)</label>
             <input
               type="number"
               step="0.01"
@@ -266,11 +317,13 @@ export default function PostSupplyTab({ onPostSupply, onSuccessRedirect, loading
 
         <button
           type="submit"
-          className="btn btn-secondary"
-          style={{ width: "100%", padding: "0.75rem", marginTop: "1rem" }}
+          className="btn btn-primary btn-lg"
+          style={{ width: "100%", marginTop: "1rem" }}
           disabled={loading}
         >
-          {loading ? "Registering..." : "Register Supply Asset"}
+          <Package size={18} strokeWidth={2.2} />
+          <span>{loading ? "Registering Stock..." : "Register Supply & Protected Reserve"}</span>
+          <ArrowRight size={16} strokeWidth={2.2} />
         </button>
       </form>
     </div>
