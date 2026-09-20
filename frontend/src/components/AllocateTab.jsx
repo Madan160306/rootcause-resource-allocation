@@ -415,305 +415,338 @@ export default function AllocateTab({
       </div>
 
       {/* P0 Mandate: Visually Dominant Hero Recommendation Screen */}
-      {matchResult && matchResult.status === "MATCH_FOUND" && (
-        <div className="hero-rec-card">
-          {/* Header Row */}
-          <div className="hero-rec-header-row">
-            <span className="hero-rec-badge">
-              <CheckCircle2 size={16} strokeWidth={2.4} />
-              ALLOCATION RECOMMENDATION &bull; OPTIMAL DISPATCH
-            </span>
-            <div className="demand-summary-pill">
-              <span>DEMAND #{currentDemand?.id || matchResult.recommendation.supply_id}</span>
-              <span className="meta-sep">&bull;</span>
-              <strong style={{ color: "var(--ink)" }}>
-                {currentDemand?.resource_type || matchResult.recommendation.supply?.resource_type}
-              </strong>
-              <span className="meta-sep">&bull;</span>
-              <span style={{ color: "var(--accent)" }}>
-                {currentDemand?.quantity || matchResult.recommendation.allocated_quantity} UNITS
-              </span>
-              <span className="meta-sep">&bull;</span>
-              <span>{currentDemand?.requester || "REGIONAL TRIAGE"}</span>
-              <span className="meta-sep">&bull;</span>
-              <span className="status-mono font-mono" style={{ fontSize: "10px" }}>
-                [{currentDemand?.urgency || "CRITICAL"}]
-              </span>
-            </div>
-          </div>
+      {matchResult && matchResult.status === "MATCH_FOUND" && (() => {
+        const rec = matchResult.recommendation;
+        const breakdown = rec.breakdown || {};
 
-          {/* Hero Main Grid */}
-          <div className="hero-rec-main">
-            <div>
-              <span className="status-mono font-mono" style={{ color: "var(--accent)", fontSize: "11px", fontWeight: 700 }}>
-                PRIMARY RECOMMENDED PROVIDER
-              </span>
-              <h1 className="hero-provider-title">
-                {matchResult.recommendation.provider}
-              </h1>
+        const compatScore = breakdown.resource_compatibility ?? 30.0;
+        const urgencyScore = breakdown.urgency ?? breakdown.urgency_weight ?? 25.0;
+        const quantityScore = breakdown.quantity ?? breakdown.quantity_availability ?? 20.0;
+        const distanceScore = breakdown.distance ?? breakdown.geographic_distance ?? 15.0;
+        const timeScore = breakdown.time_compatibility ?? 10.0;
+        const calculatedSum = compatScore + urgencyScore + quantityScore + distanceScore + timeScore;
 
-              <div className="hero-usable-units">
-                <span style={{ color: "var(--accent)", fontWeight: 700 }}>
-                  {matchResult.recommendation.allocated_quantity} / {matchResult.recommendation.usable_quantity} usable units
+        const totalInventory = rec.available_quantity ?? ((rec.usable_quantity || 0) + (rec.reserve_quantity || 0));
+        const protectedReserve = rec.reserve_quantity || 0;
+        const usableInventory = rec.usable_quantity ?? Math.max(0, totalInventory - protectedReserve);
+        const requestedQuantity = currentDemand?.quantity ?? rec.allocated_quantity;
+        const allocatedQuantity = rec.allocated_quantity;
+        const remainingUsable = Math.max(0, usableInventory - allocatedQuantity);
+
+        return (
+          <div className="hero-rec-card">
+            {/* Header Row */}
+            <div className="hero-rec-header-row">
+              <span className="hero-rec-badge">
+                <CheckCircle2 size={16} strokeWidth={2.4} />
+                ALLOCATION RECOMMENDATION &bull; OPTIMAL DISPATCH
+              </span>
+              <div className="demand-summary-pill">
+                <span>DEMAND #{currentDemand?.id || rec.supply_id}</span>
+                <span className="meta-sep">&bull;</span>
+                <strong style={{ color: "var(--ink)" }}>
+                  {currentDemand?.resource_type || rec.supply?.resource_type}
+                </strong>
+                <span className="meta-sep">&bull;</span>
+                <span style={{ color: "var(--accent)" }}>
+                  REQUEST: {requestedQuantity} UNITS
                 </span>
                 <span className="meta-sep">&bull;</span>
-                <span>{matchResult.recommendation.location}</span>
+                <span>{currentDemand?.requester || "REGIONAL TRIAGE"}</span>
                 <span className="meta-sep">&bull;</span>
-                <span>{matchResult.recommendation.distance_km?.toFixed(1)} km (Haversine)</span>
-                {matchResult.recommendation.reserve_quantity > 0 && (
-                  <>
-                    <span className="meta-sep">&bull;</span>
-                    <span style={{ color: "var(--status-high)", fontWeight: 600 }}>
-                      ({matchResult.recommendation.reserve_quantity} units locked in facility reserve)
+                <span className="status-mono font-mono" style={{ fontSize: "10px" }}>
+                  [{currentDemand?.urgency || "CRITICAL"}]
+                </span>
+              </div>
+            </div>
+
+            {/* Hero Main Grid */}
+            <div className="hero-rec-main">
+              <div>
+                <span className="status-mono font-mono" style={{ color: "var(--accent)", fontSize: "11px", fontWeight: 700 }}>
+                  PRIMARY RECOMMENDED PROVIDER
+                </span>
+                <h1 className="hero-provider-title">
+                  {rec.provider}
+                </h1>
+
+                <div className="hero-usable-units">
+                  <span style={{ color: "var(--accent)", fontWeight: 700 }}>
+                    ALLOCATED: {allocatedQuantity} UNITS (OF {requestedQuantity} REQUESTED)
+                  </span>
+                  <span className="meta-sep">&bull;</span>
+                  <span>{rec.location}</span>
+                  <span className="meta-sep">&bull;</span>
+                  <span>{rec.distance_km?.toFixed(1)} km (Haversine corridor)</span>
+                </div>
+
+                {/* Mathematical Inventory Consistency Grid (PDF Requirement) */}
+                <div className="inventory-math-grid font-mono">
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">1. TOTAL INVENTORY</span>
+                    <span className="inv-math-val">{totalInventory} units</span>
+                  </div>
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">2. PROTECTED RESERVE</span>
+                    <span className="inv-math-val" style={{ color: "var(--status-high)" }}>{protectedReserve} units</span>
+                  </div>
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">3. USABLE INVENTORY</span>
+                    <span className="inv-math-val">{usableInventory} units</span>
+                  </div>
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">4. REQUESTED QUANTITY</span>
+                    <span className="inv-math-val">{requestedQuantity} units</span>
+                  </div>
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">5. ALLOCATED QUANTITY</span>
+                    <span className="inv-math-val" style={{ color: "var(--accent)" }}>{allocatedQuantity} units</span>
+                  </div>
+                  <div className="inv-math-cell">
+                    <span className="inv-math-label">6. REMAINING USABLE</span>
+                    <span className="inv-math-val" style={{ color: "var(--status-ok)" }}>{remainingUsable} units</span>
+                  </div>
+                </div>
+
+                {/* WHY THIS PROVIDER? Checkmark Checklist */}
+                <div className="why-checklist">
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
+                    WHY THIS PROVIDER? (DETERMINISTIC VERIFICATION)
+                  </div>
+                  <div className="why-item">
+                    <Check size={16} className="why-icon" strokeWidth={2.8} />
+                    <span>
+                      <strong>Exact resource type match:</strong> {currentDemand?.resource_type || rec.supply?.resource_type} ({compatScore.toFixed(1)} / 30.0 pts)
                     </span>
-                  </>
+                  </div>
+                  <div className="why-item">
+                    <Check size={16} className="why-icon" strokeWidth={2.8} />
+                    <span>
+                      <strong>Urgency tier accommodated:</strong> {currentDemand?.urgency || "CRITICAL"} ({urgencyScore.toFixed(1)} / 25.0 pts)
+                    </span>
+                  </div>
+                  <div className="why-item">
+                    <Check size={16} className="why-icon" strokeWidth={2.8} />
+                    <span>
+                      <strong>Usable inventory meets demand:</strong> {usableInventory} usable available vs {requestedQuantity} requested ({allocatedQuantity} allocated, {remainingUsable} remaining usable, {protectedReserve} reserve protected) ({quantityScore.toFixed(1)} / 20.0 pts)
+                    </span>
+                  </div>
+                  <div className="why-item">
+                    <Check size={16} className="why-icon" strokeWidth={2.8} />
+                    <span>
+                      <strong>Optimal Haversine distance:</strong> {rec.distance_km?.toFixed(1)} km ({distanceScore.toFixed(1)} / 15.0 pts)
+                    </span>
+                  </div>
+                  <div className="why-item">
+                    <Check size={16} className="why-icon" strokeWidth={2.8} />
+                    <span>
+                      <strong>Temporal availability buffer valid:</strong> Covers needed emergency window ({timeScore.toFixed(1)} / 10.0 pts)
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Score & Pre-Confirmation Box */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div className="hero-score-box">
+                  <div className="hero-score-numeral">
+                    {rec.score?.toFixed(1) || calculatedSum.toFixed(1)}
+                  </div>
+                  <div className="hero-score-label">
+                    / 100 ALLOCATION SCORE
+                  </div>
+                </div>
+
+                {/* Action Dispatch Buttons & Pre-confirmation box */}
+                {matchResult.allocation_id && !matchResult.isConfirmed && (
+                  <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
+                    <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      <Lock size={12} /> PRE-CONFIRMATION (PENDING AUTHORIZATION)
+                    </div>
+                    <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
+                      Stock is not deducted until confirmed. Facility safety reserves remain guarded.
+                    </p>
+                    <button
+                      className="btn btn-primary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => handleConfirm(matchResult.allocation_id)}
+                      disabled={loading}
+                    >
+                      <Check size={16} strokeWidth={2.5} />
+                      <span>CONFIRM ALLOCATION (LOCK STOCK)</span>
+                    </button>
+                  </div>
+                )}
+
+                {matchResult.allocation_id && matchResult.isConfirmed && !matchResult.isCompleted && (
+                  <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
+                    <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      <Truck size={12} /> STATUS: CONFIRMED &bull; IN-TRANSIT
+                    </div>
+                    <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
+                      Inventory reserved. Vehicle dispatched along Haversine corridor.
+                    </p>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ width: "100%", justifyContent: "center" }}
+                      onClick={() => handleComplete(matchResult.allocation_id)}
+                      disabled={loading}
+                    >
+                      <Truck size={16} strokeWidth={2.5} />
+                      <span>COMPLETE TRANSFER &amp; FULFILL</span>
+                    </button>
+                  </div>
+                )}
+
+                {matchResult.isCompleted && (
+                  <div style={{ background: "var(--status-ok-bg)", border: "1px solid var(--status-ok-border)", padding: "1.25rem", textAlign: "center" }}>
+                    <div style={{ color: "var(--status-ok)", fontWeight: 800, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
+                      <CheckCircle2 size={16} /> DELIVERY COMPLETED &bull; MISSION FULFILLED
+                    </div>
+                    <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0.4rem 0 0 0" }}>
+                      Emergency demand fulfilled. Audit record archived.
+                    </p>
+                  </div>
                 )}
               </div>
+            </div>
 
-              {/* WHY THIS PROVIDER? Checkmark Checklist */}
-              <div className="why-checklist">
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: 800, letterSpacing: "0.1em", color: "var(--text-secondary)", marginBottom: "0.4rem" }}>
-                  WHY THIS PROVIDER? (DETERMINISTIC VERIFICATION)
-                </div>
-                <div className="why-item">
-                  <Check size={16} className="why-icon" strokeWidth={2.8} />
+            {/* Truthful Bedrock / AI Operational Narrative (PDF Requirement) */}
+            {matchResult.explanation && (
+              <div className="story-ai-narrative">
+                <div className="narrative-label font-mono" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Sparkles size={13} style={{ color: "var(--accent)" }} />
                   <span>
-                    <strong>Exact resource type match:</strong> {currentDemand?.resource_type || matchResult.recommendation.supply?.resource_type} (30 / 30 pts)
+                    {health?.bedrock_status === "CONNECTED"
+                      ? "AMAZON BEDROCK OPERATIONAL SYNTHESIS (LIVE CLOUD):"
+                      : "DETERMINISTIC EXPLAINABLE NARRATIVE (LOCAL HEURISTIC ENGINE • BEDROCK: STANDBY):"}
                   </span>
                 </div>
-                <div className="why-item">
-                  <Check size={16} className="why-icon" strokeWidth={2.8} />
-                  <span>
-                    <strong>Urgency tier accommodated:</strong> {currentDemand?.urgency || "CRITICAL"} (25 / 25 pts)
-                  </span>
+                <p className="narrative-body font-display">
+                  "{matchResult.explanation}"
+                </p>
+              </div>
+            )}
+
+            {/* 100-Point Scoring Breakdown with Mathematically Exact Factor Sum */}
+            <div className="score-breakdown-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1rem" }}>
+                <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, letterSpacing: "0.1em", margin: 0, color: "var(--ink)" }}>
+                  100-POINT DETERMINISTIC SCORING RUBRIC BREAKDOWN
+                </h3>
+                <span className="font-mono" style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700 }}>
+                  COMPOSITE: {rec.score?.toFixed(1) || calculatedSum.toFixed(1)} / 100.0 PTS (SUM = {calculatedSum.toFixed(1)})
+                </span>
+              </div>
+
+              <div className="breakdown-row">
+                <div className="factor-label">RESOURCE COMPATIBILITY</div>
+                <div className="factor-bar-track">
+                  <div className="factor-bar-fill" style={{ width: `${Math.min(100, (compatScore / 30.0) * 100)}%` }} />
                 </div>
-                <div className="why-item">
-                  <Check size={16} className="why-icon" strokeWidth={2.8} />
-                  <span>
-                    <strong>Usable inventory meets demand:</strong> {matchResult.recommendation.usable_quantity} units available (safety reserve strictly guarded)
-                  </span>
+                <div className="factor-pts font-mono">{compatScore.toFixed(1)} / 30.0</div>
+              </div>
+
+              <div className="breakdown-row">
+                <div className="factor-label">URGENCY WEIGHTING</div>
+                <div className="factor-bar-track">
+                  <div className="factor-bar-fill" style={{ width: `${Math.min(100, (urgencyScore / 25.0) * 100)}%` }} />
                 </div>
-                <div className="why-item">
-                  <Check size={16} className="why-icon" strokeWidth={2.8} />
-                  <span>
-                    <strong>Optimal Haversine distance:</strong> {matchResult.recommendation.distance_km?.toFixed(1)} km ({matchResult.recommendation.breakdown?.geographic_distance?.toFixed(1) || 15} / 15 pts)
-                  </span>
+                <div className="factor-pts font-mono">{urgencyScore.toFixed(1)} / 25.0</div>
+              </div>
+
+              <div className="breakdown-row">
+                <div className="factor-label">QUANTITY FULFILLMENT</div>
+                <div className="factor-bar-track">
+                  <div
+                    className="factor-bar-fill"
+                    style={{ width: `${Math.min(100, (quantityScore / 20.0) * 100)}%` }}
+                  />
                 </div>
-                <div className="why-item">
-                  <Check size={16} className="why-icon" strokeWidth={2.8} />
-                  <span>
-                    <strong>Temporal availability buffer valid</strong> ({matchResult.recommendation.breakdown?.time_compatibility || 10} / 10 pts)
-                  </span>
+                <div className="factor-pts font-mono">
+                  {quantityScore.toFixed(1)} / 20.0
+                </div>
+              </div>
+
+              <div className="breakdown-row">
+                <div className="factor-label">GEOGRAPHIC PROXIMITY (HAVERSINE)</div>
+                <div className="factor-bar-track">
+                  <div
+                    className="factor-bar-fill"
+                    style={{ width: `${Math.min(100, (distanceScore / 15.0) * 100)}%` }}
+                  />
+                </div>
+                <div className="factor-pts font-mono">
+                  {distanceScore.toFixed(1)} / 15.0
+                </div>
+              </div>
+
+              <div className="breakdown-row" style={{ borderBottom: "none" }}>
+                <div className="factor-label">TIME BUFFER</div>
+                <div className="factor-bar-track">
+                  <div
+                    className="factor-bar-fill"
+                    style={{ width: `${Math.min(100, (timeScore / 10.0) * 100)}%` }}
+                  />
+                </div>
+                <div className="factor-pts font-mono">
+                  {timeScore.toFixed(1)} / 10.0
                 </div>
               </div>
             </div>
 
-            {/* Score & Pre-Confirmation Box */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div className="hero-score-box">
-                <div className="hero-score-numeral">
-                  {matchResult.recommendation.score?.toFixed(1) || "100.0"}
+            {/* Ranked Contingency Alternatives with Penalty Inspector */}
+            {matchResult.alternatives && matchResult.alternatives.length > 0 && (
+              <div className="story-alternatives" style={{ marginTop: "2.5rem" }}>
+                <div className="alternatives-header font-mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>RANKED CONTINGENCY ALTERNATIVES ({matchResult.alternatives.length})</span>
+                  <span style={{ color: "var(--accent)" }}>&bull; PENALTY INSPECTOR ACTIVE</span>
                 </div>
-                <div className="hero-score-label">
-                  / 100 ALLOCATION SCORE
-                </div>
-              </div>
-
-              {/* Action Dispatch Buttons & Pre-confirmation box */}
-              {matchResult.allocation_id && !matchResult.isConfirmed && (
-                <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
-                  <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                    <Lock size={12} /> PRE-CONFIRMATION (PENDING AUTHORIZATION)
-                  </div>
-                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
-                    Stock is not deducted until confirmed. Facility safety reserves remain guarded.
-                  </p>
-                  <button
-                    className="btn btn-primary"
-                    style={{ width: "100%", justifyContent: "center" }}
-                    onClick={() => handleConfirm(matchResult.allocation_id)}
-                    disabled={loading}
-                  >
-                    <Check size={16} strokeWidth={2.5} />
-                    <span>CONFIRM ALLOCATION (LOCK STOCK)</span>
-                  </button>
-                </div>
-              )}
-
-              {matchResult.allocation_id && matchResult.isConfirmed && !matchResult.isCompleted && (
-                <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", padding: "1.25rem", textAlign: "left" }}>
-                  <div className="status-mono font-mono" style={{ color: "var(--accent)", marginBottom: "0.5rem", fontSize: "11px", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                    <Truck size={12} /> STATUS: CONFIRMED &bull; IN-TRANSIT
-                  </div>
-                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0 0 1rem 0", lineHeight: 1.45 }}>
-                    Inventory reserved. Vehicle dispatched along Haversine corridor.
-                  </p>
-                  <button
-                    className="btn btn-secondary"
-                    style={{ width: "100%", justifyContent: "center" }}
-                    onClick={() => handleComplete(matchResult.allocation_id)}
-                    disabled={loading}
-                  >
-                    <Truck size={16} strokeWidth={2.5} />
-                    <span>COMPLETE TRANSFER &amp; FULFILL</span>
-                  </button>
-                </div>
-              )}
-
-              {matchResult.isCompleted && (
-                <div style={{ background: "var(--status-ok-bg)", border: "1px solid var(--status-ok-border)", padding: "1.25rem", textAlign: "center" }}>
-                  <div style={{ color: "var(--status-ok)", fontWeight: 800, fontSize: "13px", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.4rem" }}>
-                    <CheckCircle2 size={16} /> DELIVERY COMPLETED &bull; MISSION FULFILLED
-                  </div>
-                  <p style={{ fontSize: "11.5px", color: "var(--text-secondary)", margin: "0.4rem 0 0 0" }}>
-                    Emergency demand fulfilled. Audit record archived.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Amazon Bedrock Operational Synthesis */}
-          {matchResult.explanation && (
-            <div className="story-ai-narrative">
-              <div className="narrative-label font-mono" style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <Sparkles size={13} style={{ color: "var(--accent)" }} />
-                <span>AMAZON BEDROCK OPERATIONAL SYNTHESIS:</span>
-              </div>
-              <p className="narrative-body font-display">
-                "{matchResult.explanation}"
-              </p>
-            </div>
-          )}
-
-          {/* P0 Score Breakdown with Progress Bars */}
-          <div className="score-breakdown-card">
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "1rem" }}>
-              <h3 style={{ fontFamily: "var(--font-mono)", fontSize: "12px", fontWeight: 800, letterSpacing: "0.1em", margin: 0, color: "var(--ink)" }}>
-                100-POINT DETERMINISTIC SCORING RUBRIC BREAKDOWN
-              </h3>
-              <span className="font-mono" style={{ fontSize: "12px", color: "var(--accent)", fontWeight: 700 }}>
-                COMPOSITE: {matchResult.recommendation.score?.toFixed(1) || "100.0"} / 100 PTS
-              </span>
-            </div>
-
-            <div className="breakdown-row">
-              <div className="factor-label">RESOURCE COMPATIBILITY</div>
-              <div className="factor-bar-track">
-                <div className="factor-bar-fill" style={{ width: "100%" }} />
-              </div>
-              <div className="factor-pts font-mono">{matchResult.recommendation.breakdown?.resource_compatibility || 30} / 30</div>
-            </div>
-
-            <div className="breakdown-row">
-              <div className="factor-label">URGENCY WEIGHTING</div>
-              <div className="factor-bar-track">
-                <div className="factor-bar-fill" style={{ width: "100%" }} />
-              </div>
-              <div className="factor-pts font-mono">{matchResult.recommendation.breakdown?.urgency_weight || 25} / 25</div>
-            </div>
-
-            <div className="breakdown-row">
-              <div className="factor-label">QUANTITY FULFILLMENT</div>
-              <div className="factor-bar-track">
-                <div
-                  className="factor-bar-fill"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      ((matchResult.recommendation.breakdown?.quantity_availability || 20) / 20) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-              <div className="factor-pts font-mono">
-                {matchResult.recommendation.breakdown?.quantity_availability || 20} / 20
-              </div>
-            </div>
-
-            <div className="breakdown-row">
-              <div className="factor-label">GEOGRAPHIC PROXIMITY (HAVERSINE)</div>
-              <div className="factor-bar-track">
-                <div
-                  className="factor-bar-fill"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      ((matchResult.recommendation.breakdown?.geographic_distance || 15) / 15) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-              <div className="factor-pts font-mono">
-                {matchResult.recommendation.breakdown?.geographic_distance?.toFixed(1) || 15} / 15
-              </div>
-            </div>
-
-            <div className="breakdown-row" style={{ borderBottom: "none" }}>
-              <div className="factor-label">TIME BUFFER</div>
-              <div className="factor-bar-track">
-                <div
-                  className="factor-bar-fill"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      ((matchResult.recommendation.breakdown?.time_compatibility || 10) / 10) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
-              <div className="factor-pts font-mono">
-                {matchResult.recommendation.breakdown?.time_compatibility || 10} / 10
-              </div>
-            </div>
-          </div>
-
-          {/* P0 Ranked Contingency Alternatives with Penalty Inspector */}
-          {matchResult.alternatives && matchResult.alternatives.length > 0 && (
-            <div className="story-alternatives" style={{ marginTop: "2.5rem" }}>
-              <div className="alternatives-header font-mono" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span>RANKED CONTINGENCY ALTERNATIVES ({matchResult.alternatives.length})</span>
-                <span style={{ color: "var(--accent)" }}>&bull; PENALTY INSPECTOR ACTIVE</span>
-              </div>
-              <div className="alternatives-list">
-                {matchResult.alternatives.map((alt, idx) => {
-                  const distDelta = (alt.distance_km - (matchResult.recommendation.distance_km || 0)).toFixed(1);
-                  const scoreDelta = ((matchResult.recommendation.score || 100) - alt.score).toFixed(1);
-                  return (
-                    <div key={idx} className="alt-ruled-row font-mono" style={{ flexWrap: "wrap" }}>
-                      <span className="alt-rank">#{idx + 2}</span>
-                      <span className="alt-name font-display">{alt.provider}</span>
-                      <span className="alt-loc">{alt.location} ({alt.distance_km?.toFixed(1)} km)</span>
-                      <span className="alt-cap">CAPACITY: {alt.usable_quantity} usable</span>
-                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
-                        {parseFloat(distDelta) > 0 && (
-                          <span className="penalty-tag">
-                            <AlertTriangle size={10} /> +{distDelta} km distance penalty
+                <div className="alternatives-list">
+                  {matchResult.alternatives.map((alt, idx) => {
+                    const altDist = alt.distance_km ?? 0;
+                    const recDist = rec.distance_km ?? 0;
+                    const distDelta = (altDist - recDist).toFixed(1);
+                    const scoreDelta = ((rec.score || 100) - alt.score).toFixed(1);
+                    const altTotal = alt.available_quantity ?? ((alt.usable_quantity || 0) + (alt.reserve_quantity || 0));
+                    const altUsable = alt.usable_quantity ?? 0;
+                    const altReserve = alt.reserve_quantity ?? 0;
+                    return (
+                      <div key={idx} className="alt-ruled-row font-mono" style={{ flexWrap: "wrap" }}>
+                        <span className="alt-rank">#{idx + 2}</span>
+                        <span className="alt-name font-display">{alt.provider}</span>
+                        <span className="alt-loc">{alt.location} ({altDist.toFixed(1)} km)</span>
+                        <span className="alt-cap">CAPACITY: {altUsable} usable ({altReserve} reserve, {altTotal} total)</span>
+                        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+                          {parseFloat(distDelta) > 0 && (
+                            <span className="penalty-tag">
+                              <AlertTriangle size={10} /> +{distDelta} km distance penalty
+                            </span>
+                          )}
+                          {altUsable < usableInventory && (
+                            <span className="penalty-tag">
+                              Lower usable stock ({altUsable} vs {usableInventory})
+                            </span>
+                          )}
+                          {altReserve > 0 && (
+                            <span className="penalty-tag">
+                              <ShieldCheck size={10} /> {altReserve} reserve locked
+                            </span>
+                          )}
+                          <span className="penalty-tag" style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)", background: "transparent" }}>
+                            -{scoreDelta} pts
                           </span>
-                        )}
-                        {alt.usable_quantity < matchResult.recommendation.usable_quantity && (
-                          <span className="penalty-tag">
-                            Lower availability
-                          </span>
-                        )}
-                        {alt.reserve_quantity > 0 && (
-                          <span className="penalty-tag">
-                            <ShieldCheck size={10} /> {alt.reserve_quantity} locked reserve
-                          </span>
-                        )}
-                        <span className="penalty-tag" style={{ borderColor: "var(--hairline)", color: "var(--text-secondary)", background: "transparent" }}>
-                          -{scoreDelta} pts
-                        </span>
+                        </div>
+                        <span className="alt-score font-mono">{alt.score?.toFixed(1)} PTS</span>
                       </div>
-                      <span className="alt-score font-mono">{alt.score?.toFixed(1)} PTS</span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        );
+      })()}
 
       {/* P0 Mandate: Cohesive No-Match Experience with Action Buttons */}
       {matchResult && matchResult.status === "NO_MATCH" && (
