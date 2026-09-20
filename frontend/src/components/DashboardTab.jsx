@@ -14,6 +14,8 @@ export default function DashboardTab({
   stats,
   demands = [],
   supplies = [],
+  health,
+  onNavigateTab,
   onSelectDemandForAllocation,
   onDeleteSupply,
   onDeleteDemand,
